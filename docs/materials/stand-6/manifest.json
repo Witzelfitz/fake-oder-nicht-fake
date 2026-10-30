@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "snapshot": "f219218392ef23cf5e59",
+  "contentVersion": "81d6ff55bae2d201",
+  "contentSource": "sqlite-library",
+  "createdAt": "2026-10-30T16:34:05.572Z",
+  "author": "Benjamin Hanimann",
+  "language": "de-CH",
+  "renderer": "Chromium 156.0.8078.4",
+  "rendererSource": "650d0e25a08e9a562818f9e9e5cc6b5a6c101aeac467affade6fcc6b8035d31d",
+  "cases": [
+    {
+      "id": "blick-panorama",
+      "revision": 1
+    },
+    {
+      "id": "blick-einladung",
+      "revision": 1
+    },
+    {
+      "id": "blick-werbung",
+      "revision": 1
+    },
+    {
+      "id": "blick-datum",
+      "revision": 1
+    },
+    {
+      "id": "blick-archiv",
+      "revision": 1
+    },
+    {
+      "id": "blick-wolken",
+      "revision": 1
+    }
+  ],
+  "files": [
+    {
+      "kind": "standplakat-a4",
+      "audience": "participant",
+      "format": "A4",
+      "path": "teilnehmende/standplakat-a4.pdf",
+      "sha256": "c87702b9c2a6a07636d2d7e0d91064aa80828edef0541c315d2f45bc811e5bbb",
+      "pages": 1,
+      "bytes": 609956
+    },
+    {
+      "kind": "standplakat-a3",
+      "audience": "participant",
+      "format": "A3",
+      "path": "teilnehmende/standplakat-a3.pdf",
+      "sha256": "bcd4d72665594ad75f0cebf1c9ffbab15882907c3dfedd63d6dbacd89c5dfb6c",
+      "pages": 1,
+      "bytes": 610734
+    },
+    {
+      "kind": "moderationsguide",
+      "audience": "facilitator",
+      "format": "A4",
+      "path": "moderation/moderationsguide.pdf",
+      "sha256": "09d6f528db812ae86cce5ed7b9e5f83a522adacc8c8c97323eb622aa60b9b55b",
+      "pages": 4,
+      "bytes": 416670
+    },
+    {
+      "kind": "teilnehmendenblatt",
+      "audience": "participant",
+      "format": "A4",
+      "path": "teilnehmende/teilnehmendenblatt.pdf",
+      "sha256": "48f9a6c0550f980247b62b4f1ed38f0069b75e8cefdc9422dda7c39ee8345312",
+      "pages": 2,
+      "bytes": 382289
+    },
+    {
+      "kind": "fallblaetter",
+      "audience": "participant",
+      "format": "A4",
+      "path": "teilnehmende/fallblaetter.pdf",
+      "sha256": "4adb7ad46ed1eb542501e34c114325d7734966714bd03fc6e3898637c0e2e51b",
+      "pages": 6,
+      "bytes": 4788697
+    },
+    {
+      "kind": "loesungen",
+      "audience": "facilitator",
+      "format": "A4",
+      "path": "moderation/loesungen.pdf",
+      "sha256": "a7e640b1182b3829269ef732d2c9288e030d2c1ad4822f4a1f8825afa1dabe1b",
+      "pages": 6,
+      "bytes": 4816401
+    },
+    {
+      "kind": "merkkarte-a6",
+      "audience": "participant",
+      "format": "A6",
+      "path": "teilnehmende/merkkarte-a6.pdf",
+      "sha256": "a9972b5c17dc9f7227c770a994ba957515c55fe80563018b42342b08d7de2cb5",
+      "pages": 1,
+      "bytes": 379714
+    },
+    {
+      "kind": "quellenregister",
+      "audience": "facilitator",
+      "format": "A4",
+      "path": "moderation/quellenregister.pdf",
+      "sha256": "bc691e6b0fabaa8779e9c943c9b70de3e831d58abd73669ed00a48d3443ae3fd",
+      "pages": 3,
+      "bytes": 415909
+    }
+  ],
+  "qa": {
+    "renderedPages": 24,
+    "renderDpi": 150,
+    "problems": [],
+    "warnings": [],
+    "visualReview": "complete: every delivered page inspected individually at 150 dpi; grayscale samples inspected; development review, 2026-10-30",
+    "physicalPrint": "not-performed",
+    "pdfUa": "not-certified",
+    "qr": "not-applicable-generic-poster"
+  }
+}

@@ -8,6 +8,9 @@ let state, config, toastTimer, memoryCredentials;
 let serverOffset = 0;
 let requestPending = false;
 let boardDuration = 25;
+let renderedKey = null;
+const learning = () => ['learning-v1','workshop-v1'].includes(state?.mode);
+const commandId = () => Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('');
 const $ = selector => document.querySelector(selector);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const number = value => Number(value).toLocaleString('de-CH');
@@ -56,10 +59,10 @@ socket.on('connect', async () => {
 });
 
 function renderLanding() {
-  app.innerHTML = `<section class="narrow"><h1>Fake oder nicht fake?</h1><p>Mit KI erzeugt oder ohne generative KI entstanden? Schau hin und stimme ab.</p>
+  app.innerHTML = `<section class="narrow entry"><p class="eyebrow">FAKE ODER NICHT FAKE? · DER ZWEITE BLICK</p><h1>Traust du deinem ersten Blick?</h1><p>Ein Eindruck. Ein Beleg. Ein Prüfschritt für den Alltag.</p>
     <form id="join-form"><label for="code">Spielcode</label><input id="code" name="code" inputmode="numeric" autocomplete="off" pattern="[0-9]{6}" maxlength="6" minlength="6" placeholder="6-stelliger Code" value="${escape(code)}" required>
     <label for="nickname">Dein Spitzname</label><input id="nickname" name="nickname" autocomplete="off" maxlength="20" minlength="2" placeholder="Zum Beispiel: Bergfuchs" required>
-    <p class="field-help">Der Spitzname erscheint auf der Rangliste. Bitte keinen echten Namen verwenden.</p><button class="button primary" type="submit">Ich rate mit</button><p id="form-error" class="form-error" role="alert"></p></form></section>`;
+    <p class="field-help">Bitte einen erfundenen Spitznamen verwenden. Er erscheint in der Gruppe und im Punktemodus auf der Rangliste.</p><button class="button primary" type="submit">Ich rate mit</button><p id="form-error" class="form-error" role="alert"></p></form></section>`;
   $('#join-form').addEventListener('submit', async event => {
     event.preventDefault(); if (requestPending) return;
     requestPending = true; const button = $('#join-form button'); button.disabled = true;
@@ -76,13 +79,29 @@ function renderLanding() {
 function renderHostSetup() {
   app.innerHTML = `<section class="narrow"><h1>Moderation</h1><p>${config.questionCount} aktive Fragen. <a href="/admin">Fragen verwalten</a></p><form id="host-form">
     <label for="host-key">Moderationsschlüssel</label><input id="host-key" type="password" autocomplete="off" required placeholder="Aus dem Server-Terminal">
-    <label for="duration">Antwortzeit pro Frage</label><select id="duration">${[15, 20, 25, 30, 45, 60].map(n => `<option value="${n}" ${n === 25 ? 'selected' : ''}>${n} Sekunden</option>`).join('')}</select>
+    <label for="mode">Modus</label><select id="mode"><option value="learning-v1" ${config.learningCount?'selected':''} ${!config.learningCount?'disabled':''}>Stand-Challenge · Lernen ohne Punkte</option><option value="workshop-v1" ${!config.learningCount?'disabled':''}>Recherche-Werkstatt · zwei Urteile</option><option value="speed-streak-v2" ${!config.learningCount?'selected':''}>Quiz mit Punkten und Tempo</option></select>
+    <label for="case-set">Fallset</label><select id="case-set">${config.sets.map(s=>`<option value="${s.id}" ${!s.available?'disabled':''}>${escape(s.title)}</option>`).join('')}<option value="custom">Alle freigegebenen eigenen Lernfälle</option></select>
+    <label for="audience">Zielgruppe</label><select id="audience"><option value="sek1">Sek I</option><option value="sek2">Sek II / Berufsbildung</option><option value="adults">Eltern / Fachpersonen</option></select>
+    <label for="duration">Antwortzeit pro Frage</label><select id="duration"></select>
     <label for="join-base">Adresse für die Handys</label><input id="join-base" type="url" list="local-addresses" required value="${escape(config.publicUrl || config.suggestedUrls[0] || location.origin)}"><datalist id="local-addresses">${config.suggestedUrls.map(url => `<option value="${escape(url)}">`).join('')}</datalist>
-    <p class="field-help">WLAN-Adresse des Laptops wählen. Handys und Laptop brauchen dasselbe erreichbare Netz.</p><button class="button primary" type="submit">Spielraum erstellen</button><p id="form-error" class="form-error" role="alert"></p></form><p class="field-help">${rules()}<br>Fehlende oder falsche Antworten unterbrechen die Serie.</p></section>`;
+    <p class="field-help">WLAN-Adresse des Laptops wählen. Handys und Laptop brauchen dasselbe erreichbare Netz.</p><button class="button primary" type="submit">Spielraum erstellen</button><p id="form-error" class="form-error" role="alert"></p></form><p class="field-help" id="mode-help"></p><p><a href="/materials">Unterlagen und PDF-Snapshot</a></p>${!config.learningCount?'<p class="field-help">Neue Lernfälle zuerst in der Fragenverwaltung über «Lernpaket importieren» ergänzen. Bestehende Fragen bleiben erhalten.</p>':''}</section>`;
+  function changeMode(){
+    const isQuiz=$('#mode').value==='speed-streak-v2';
+    $('#case-set').disabled=isQuiz;
+    $('#duration').innerHTML=(isQuiz?[15,20,25,30,45,60]:[25,30,45,60,75,90,120,180]).map(n=>`<option value="${n}" ${n===(isQuiz?25:75)?'selected':''}>${n} Sekunden</option>`).join('');
+    $('#mode-help').textContent=isQuiz?rules():'Zeitablauf schliesst nur die Eingabe. Ohne Tempo-/Serienpunkte und globale Rangliste; Auflösung durch die Moderation.';
+  }
+  $('#mode').addEventListener('change',changeMode); changeMode();
+  $('#audience').addEventListener('change',()=>{
+    if(!config.learningCount)return;
+    const presets={sek1:['learning-v1','stand-6'],sek2:['workshop-v1','werkstatt-4'],adults:['learning-v1','alltag-6']};
+    const [mode,set]=presets[$('#audience').value];
+    if(config.sets.find(s=>s.id===set)?.available){$('#mode').value=mode;$('#case-set').value=set;changeMode();}
+  });
   $('#host-form').addEventListener('submit', async event => {
     event.preventDefault(); const button = $('#host-form button'); button.disabled = true;
     try {
-      const response = await fetch('/api/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hostKey: $('#host-key').value, duration: Number($('#duration').value), joinBase: $('#join-base').value }) });
+      const response = await fetch('/api/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hostKey: $('#host-key').value, duration: Number($('#duration').value), joinBase: $('#join-base').value,mode:$('#mode').value,setId:$('#case-set').value,audience:$('#audience').value }) });
       const result = await response.json(); if (!response.ok) throw new Error(result.error);
       code = result.room; sessionStorage.setItem(`quiz-host-${code}`, result.hostToken);
       history.replaceState(null, '', `/host?code=${code}`);
@@ -94,7 +113,7 @@ function hostToolbar() {
   if (role !== 'host') return '';
   const action = state.phase === 'lobby' ? 'start' : state.phase === 'question' ? 'reveal' : state.phase === 'reveal' ? 'next' : null;
   const label = state.phase === 'lobby' ? 'Quiz starten' : state.phase === 'question' ? 'Jetzt auflösen' : state.index + 1 === state.total ? 'Ergebnis zeigen' : 'Nächste Frage';
-  return `<div class="host-toolbar"><span>${state.playerCount} Personen · ${state.answeredCount} Antworten</span><div class="toolbar-buttons"><a href="/screen?code=${code}" target="_blank" rel="noopener">Beamer öffnen</a><a href="/stand.html?join=${encodeURIComponent(state.joinUrl)}" target="_blank" rel="noopener">Standplakat</a>${action ? `<button class="button primary" id="host-action" data-action="${action}" ${state.phase === 'lobby' && !state.playerCount ? 'disabled' : ''}>${label}</button>` : '<a class="button primary" href="/host">Neue Gruppe</a>'}</div></div>`;
+  return `<div class="host-toolbar"><span>${state.playerCount} Personen · ${state.answeredCount} Antworten</span><div class="toolbar-buttons"><a href="/screen?code=${code}" target="_blank" rel="noopener">Beamer öffnen</a><a href="/materials" target="_blank" rel="noopener">Unterlagen</a>${action ? `<button class="button primary" id="host-action" data-action="${action}" ${state.phase === 'lobby' && !state.playerCount ? 'disabled' : ''}>${label}</button>` : '<a class="button primary" href="/host">Neue Gruppe</a>'}</div></div>`;
 }
 function renderLobby() {
   const isPlayer = role === 'player';
@@ -154,33 +173,55 @@ function renderFinished() {
 let phaseKey, phaseStart;
 function syncPhaseClock() {
   const key = `${state.room}:${state.phase}:${state.index}`;
-  if (key !== phaseKey) { phaseKey = key; phaseStart = performance.now(); }
+  if (key !== phaseKey) { phaseKey = key; phaseStart = performance.now() - Math.max(0,Date.now()+serverOffset-(state.phaseStartedAt || Date.now()+serverOffset)); }
   app.style.setProperty('--elapsed', `${((performance.now() - phaseStart) / 1000).toFixed(3)}s`);
 }
 function renderState() {
   document.body.classList.toggle('screen-mode', role === 'screen');
+  document.body.classList.toggle('learning-mode',learning());
+  const key=`${state.room}:${state.mode}:${state.phase}:${state.index}:${state.revealStep || 0}:${state.me?.id || role}`;
+  if(key===renderedKey){patchLiveState();updateClock();return;}
+  renderedKey=key;
   syncPhaseClock();
-  app.innerHTML = hostToolbar() + (state.phase === 'lobby' ? renderLobby() : state.phase === 'finished' ? renderFinished() : renderQuestion());
+  app.innerHTML = learning()?window.LearningUI.render(state,role):hostToolbar() + (state.phase === 'lobby' ? renderLobby() : state.phase === 'finished' ? renderFinished() : renderQuestion());
   document.querySelectorAll('[data-share]').forEach(el => el.style.setProperty('--share', `${el.dataset.share}%`));
-  document.querySelectorAll('.image-example img').forEach(img => img.addEventListener('error', () => { img.hidden = true; img.nextElementSibling.hidden = false; }));
-  $('#host-action')?.addEventListener('click', async event => {
+  document.querySelectorAll('.image-example img').forEach(img => img.addEventListener('error', () => { img.hidden = true; const error=img.closest('.image-example').querySelector('.image-error');if(error)error.hidden=false; }));
+  document.querySelector('[data-zoom]')?.addEventListener('click',event=>event.currentTarget.classList.toggle('zoomed'));
+  async function hostAction(event) {
     if (requestPending) return;
     requestPending = true; const button = event.currentTarget; button.disabled = true;
-    try { await emit('host:action', { action: button.dataset.action }); }
+    try { await emit('host:action', { action: button.dataset.action,...(learning()?{commandId:commandId(),expectedRevision:state.revision,expectedPhase:state.phase,expectedIndex:state.index}:{}) }); }
     catch (error) { showToast(error.message); button.disabled = false; }
     finally { requestPending = false; }
-  });
+  }
+  $('#host-action')?.addEventListener('click',hostAction);
+  $('#skip-case')?.addEventListener('click',hostAction);
   document.querySelectorAll('[data-choice]').forEach(button => button.addEventListener('click', async () => {
     if (requestPending) return;
     requestPending = true;
     document.querySelectorAll('[data-choice]').forEach(b => { b.disabled = true; });
-    try { await emit('answer', { questionId: state.question.id, choice: button.dataset.choice }); }
-    catch (error) { showToast(error.message); renderState(); }
+    try { await emit('answer', { questionId: state.question.id, choice: button.dataset.choice,...(learning()?{promptId:'main',stage:state.phase==='final_vote'?'final':'first',confidence:$('#confidence')?.value?Number($('#confidence').value):null}:{}) }); }
+    catch (error) { showToast(error.message); patchLiveState(); }
     finally { requestPending = false; }
   }));
 }
+function patchLiveState(){
+  const count=document.querySelector('[data-live-count]') || document.querySelector('.host-toolbar>span');
+  if(count)count.textContent=`${state.playerCount} Personen · ${state.answeredCount} Antworten`;
+  const vote=document.querySelector('[data-vote-count]') || document.querySelector('.audience-prompt');
+  if(vote)vote.textContent=`Auf dem Handy abstimmen · ${state.answeredCount} / ${state.playerCount} Antworten`;
+  if(state.phase==='lobby'){
+    const chips=document.querySelector('.player-chips');if(chips)chips.innerHTML=state.players.map(p=>`<span>${escape(p.nickname)}</span>`).join('');
+    const heading=document.querySelector('[data-player-heading]');if(heading)heading.textContent=`Schon dabei (${state.playerCount})`;
+    const start=$('#host-action');if(start)start.disabled=!state.playerCount;
+  }
+  document.querySelectorAll('[data-choice]').forEach(button=>{button.disabled=!!state.me?.answer||!!state.votingClosed;button.classList.toggle('selected',state.me?.answer?.choice===button.dataset.choice);});
+  const confidence=$('#confidence');if(confidence&&state.me?.answer)confidence.disabled=true;
+  const status=$('#answer-status') || document.querySelector('.answer-area .field-help');
+  if(status)status.textContent=state.me?.answer?'Deine Antwort ist gespeichert':state.votingClosed?'Eingabe geschlossen. Die Moderation führt weiter.':learning()?'Dein eigener Eindruck zählt. Noch keine Mehrheitsanzeige.':'Eine Antwort pro Frage. Schnell und richtig gibt mehr Punkte.';
+}
 function updateClock() {
-  if (state?.phase !== 'question') return;
+  if (!['question','first_vote','final_vote'].includes(state?.phase)) return;
   const left = Math.max(0, state.deadline - (Date.now() + serverOffset));
   if ($('#seconds')) $('#seconds').textContent = Math.ceil(left / 1000);
   if ($('#progress-fill')) $('#progress-fill').style.width = `${left / (state.duration * 1000) * 100}%`;

@@ -2,6 +2,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { validateCase } from './cases.js';
 
 export const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 export const contentRoot = path.join(projectRoot, 'content');
@@ -20,7 +21,8 @@ export function resolveAsset(asset, uploadRoot) {
 
 export function validateQuestion(q, uploadRoot) {
   if (!['photo', 'text', 'poster'].includes(q.type)) throw new Error('Ungültiger Fragetyp.');
-  if (!['ai', 'human'].includes(q.answer)) throw new Error('Bitte die richtige Herkunft auswählen.');
+  if (q.schemaVersion === 3) validateCase(q);
+  else if (!['ai', 'human'].includes(q.answer)) throw new Error('Bitte die richtige Herkunft auswählen.');
   const limits = { title: 160, explanation: 4000, takeaway: 1500, source: 1500, credit: 1000, license: 1000 };
   for (const [field, max] of Object.entries(limits)) {
     if (typeof q[field] !== 'string' || !q[field].trim() || q[field].length > max) throw new Error(`Feld ${field} fehlt oder ist zu lang (max. ${max} Zeichen).`);

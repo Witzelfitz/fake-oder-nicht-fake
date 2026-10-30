@@ -9,3 +9,6 @@ playwright-report/
 output/
 *.log
 .DS_Store
+.venv/
+publications/
+docs/materials/**/previews/

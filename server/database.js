@@ -60,5 +60,36 @@ export function openDatabase(file) {
       COMMIT;`);
     } catch (error) { db.exec('ROLLBACK'); db.close(); throw error; }
   }
+  const schema = db.prepare("SELECT value FROM quiz_meta WHERE key = 'schema_version'").get();
+  if (Number(schema?.value || 2) < 3) {
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      const columns = db.prepare('PRAGMA table_info(rooms)').all().map(c => c.name);
+      for (const [name, definition] of Object.entries({
+        mode: "TEXT NOT NULL DEFAULT 'speed-streak-v2'", revision: 'INTEGER NOT NULL DEFAULT 0',
+        schema_version: 'INTEGER NOT NULL DEFAULT 1', phase_started_at: 'INTEGER',
+        reveal_step: 'INTEGER NOT NULL DEFAULT 0', voting_closed: 'INTEGER NOT NULL DEFAULT 0',
+        set_id: "TEXT NOT NULL DEFAULT 'legacy'", audience: "TEXT NOT NULL DEFAULT 'sek1'"
+      })) if (!columns.includes(name)) db.exec(`ALTER TABLE rooms ADD COLUMN ${name} ${definition}`);
+      db.exec(`CREATE TABLE IF NOT EXISTS responses_v3 (
+        room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+        player_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+        case_id TEXT NOT NULL, prompt_id TEXT NOT NULL, stage TEXT NOT NULL CHECK(stage IN ('first','final')),
+        choice TEXT NOT NULL, confidence INTEGER CHECK(confidence BETWEEN 1 AND 3),
+        submitted_at INTEGER NOT NULL, schema_version INTEGER NOT NULL DEFAULT 3,
+        PRIMARY KEY(room_id,player_id,case_id,prompt_id,stage)
+      );
+      CREATE TABLE IF NOT EXISTS room_commands (
+        room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+        command_id TEXT NOT NULL, request_json TEXT NOT NULL, result_json TEXT NOT NULL,
+        PRIMARY KEY(room_id,command_id)
+      );
+      CREATE TABLE IF NOT EXISTS publication_snapshots (
+        id TEXT PRIMARY KEY, content_json TEXT NOT NULL, created_at INTEGER NOT NULL
+      );
+      INSERT INTO quiz_meta (key,value) VALUES ('schema_version','3') ON CONFLICT(key) DO UPDATE SET value='3';
+      COMMIT;`);
+    } catch (error) { db.exec('ROLLBACK'); db.close(); throw error; }
+  }
   return db;
 }

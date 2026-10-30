@@ -13,3 +13,11 @@ Die MIT-Lizenz des Quellcodes ersetzt keine Medienlizenz.
 | Einladung und Wolkenerklärung | Für dieses Quiz vom Codex-Sprachmodell formuliert | Projekteigene KI-Texte, als KI-Inhalt dokumentiert. |
 
 Vollständige Bildprompts, Textaufträge und SHA-256-Prüfsummen stehen in [content/provenance.json](content/provenance.json). Das öffentliche Quiz nennt die Quelle jeweils bei der Auflösung. Die allgemeine Quellenansicht unter `/sources.html` enthält diese Bildnachweise ebenfalls und ist von der Startseite erreichbar.
+
+## Lernfälle, Schriften und Druckdateien
+
+Die zusätzlichen Quellenakten stehen in `content/case-pack.json`. Repair-Café Nebenan, Mia Keller, Portal A/B und alle ihnen zugeschriebenen Zahlen/Zitate sind eigene, sichtbar markierte Unterrichtssimulationen. Es sind keine Meldungen über reale Organisationen oder Personen. Für den Wolkenfall wurde die MeteoSchweiz-Broschüre «Typische Wetterlagen im Alpenraum», Seite 9, als Primärquelle gelesen und knapp zusammengefasst; das Original-PDF wird nicht nachgedruckt oder als Projekteigentum verteilt.
+
+`public/fonts/DejaVuSans.ttf`, `DejaVuSans-Bold.ttf` und `DejaVuSansMono.ttf` stammen aus den im Upgradepaket mitgelieferten DejaVu-Schriften. Die vollständigen Lizenzhinweise stehen unter [public/fonts/LICENSE.txt](public/fonts/LICENSE.txt) und werden jedem HTML/PDF-Dateisatz als `assets/fonts-license.txt` beigelegt. Schriftlizenzen und Medienrechte gelten auch in den exportierten PDFs, HTML-Dateien, Kontaktbögen und Screenshots. Der Autoreneintrag der Dokumente ist Benjamin Hanimann; fremde Bildurheber bleiben zusätzlich korrekt genannt.
+
+Die neuen Lernfälle verwenden die bestehenden Medien unverändert. A4-/A3-Plakate und Fallblätter zeigen Herkunft und Lizenz direkt am Material; deshalb enthalten auch Teilnehmer-PDFs solche Angaben. Lösungen und private Notizen stehen nur in den Moderationsdateien und deren Publikations-JSON. Kontaktbögen zeigen den gesamten Dateisatz einschliesslich Lösungen und sind nicht zur vorzeitigen Ausgabe an Teilnehmende bestimmt.

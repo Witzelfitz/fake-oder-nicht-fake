@@ -2,6 +2,8 @@ import express from 'express';
 import { randomBytes } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fingerprintDeck, resolveAsset, validateQuestion } from './content.js';
+import { curatedPack, previewImport, applyImport } from './imports.js';
+import { readSettings, writeSettings } from './settings.js';
 
 export function questionBank(db, initialDeck) {
   if (!db.prepare("SELECT value FROM quiz_meta WHERE key = 'bank_seeded'").get()) {
@@ -15,8 +17,15 @@ export function questionBank(db, initialDeck) {
   const entries = () => db.prepare('SELECT * FROM question_bank ORDER BY position, id').all()
     .map(row => ({ ...JSON.parse(row.question_json), enabled: Boolean(row.enabled), position: row.position, version: row.version }));
   const deck = () => fingerprintDeck({ title: initialDeck.title, version: 1,
-    questions: entries().filter(q => q.enabled).map(({ enabled, position, version, ...q }) => q) });
-  return { entries, deck };
+    questions: entries().filter(q => q.enabled && q.schemaVersion !== 3).map(({ enabled, position, version, ...q }) => q) });
+  const learningDeck = (ids = null) => {
+    if (ids && (!Array.isArray(ids) || ids.length > 200 || new Set(ids).size !== ids.length)) throw new Error('Ungültige Fallauswahl.');
+    let cases = entries().filter(q => q.enabled && q.schemaVersion === 3 && q.status === 'published');
+    if (ids) cases = ids.map(id => cases.find(q => q.id === id)).map(q => { if (!q) throw new Error('Ein ausgewählter Fall fehlt oder ist nicht freigegeben.'); return q; });
+    return fingerprintDeck({ title: 'Fake oder nicht fake? · Der zweite Blick', version: 3,
+      questions: cases.map(({ enabled, position, version, ...q }) => ({ ...q, revision: version })) });
+  };
+  return { entries, deck, learningDeck };
 }
 
 function cleanQuestion(body, id) {
@@ -29,6 +38,13 @@ function cleanQuestion(body, id) {
   };
   if (q.type === 'text') q.text = text('text');
   else q.asset = text('asset');
+  if (body.schemaVersion === 3) Object.assign(q, {
+    schemaVersion: 3, axis: body.axis, prompt: text('prompt'), status: body.status || 'draft',
+    alt: text('alt'), caption: text('caption'), simulation: body.simulation === true,
+    limitation: text('limitation'), transfer: text('transfer'), privateNotes: text('privateNotes'),
+    sources: Array.isArray(body.sources) ? body.sources : [],
+    review: body.review && typeof body.review === 'object' ? body.review : null
+  });
   return q;
 }
 
@@ -44,6 +60,24 @@ export function installQuestionAdmin(app, { db, bank, uploadRoot, authenticate }
   const router = express.Router();
   router.use(authenticate);
   router.get('/questions', (_req, res) => res.json({ questions: bank.entries() }));
+  router.get('/settings', (_req,res) => res.json(readSettings(db)));
+  router.put('/settings', (req,res) => { try { res.json(writeSettings(db,req.body ?? {})); } catch (error) { res.status(400).json({error:error.message}); } });
+  const profiles=()=>JSON.parse(db.prepare("SELECT value FROM quiz_meta WHERE key='event_profiles'").get()?.value||'[]');
+  router.get('/profiles',(_req,res)=>res.json(profiles()));
+  router.post('/profiles',(req,res)=>{
+    const name=typeof req.body?.name==='string'?req.body.name.trim():'';
+    if(!name||name.length>100)return res.status(400).json({error:'Bitte einen Profilnamen mit maximal 100 Zeichen angeben.'});
+    const all=profiles();const old=all.find(p=>p.name===name);
+    if(!old&&all.length>=20)return res.status(400).json({error:'Maximal 20 Anlassprofile.'});
+    const profile={id:old?.id||randomBytes(8).toString('hex'),name,settings:readSettings(db)};
+    const next=[...all.filter(p=>p.id!==profile.id),profile];db.prepare("INSERT INTO quiz_meta(key,value) VALUES('event_profiles',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(JSON.stringify(next));res.json(profile);
+  });
+  router.post('/profiles/:id/activate',(req,res)=>{const profile=profiles().find(p=>p.id===req.params.id);if(!profile)return res.status(404).json({error:'Anlassprofil nicht gefunden.'});res.json(writeSettings(db,profile.settings));});
+  router.get('/import/preview', (_req,res) => res.json({ cases: previewImport(db), sets: curatedPack().sets }));
+  router.post('/import/apply', (req,res) => {
+    if (req.body?.confirm !== true) return res.status(400).json({error:'Import bitte ausdrücklich bestätigen. Bestehende Fassungen werden beibehalten.'});
+    try { res.json(applyImport(db,uploadRoot)); } catch (error) { res.status(400).json({error:error.message}); }
+  });
   router.post('/questions', (req, res) => {
     if (bank.entries().length >= 200) return res.status(400).json({ error: 'Maximal 200 Fragen pro Bibliothek.' });
     const q = cleanQuestion(req.body ?? {}, randomBytes(12).toString('hex'));

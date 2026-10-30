@@ -5,3 +5,8 @@ data
 output
 test-results
 playwright-report
+.venv
+docs
+publications
+test
+.env.*

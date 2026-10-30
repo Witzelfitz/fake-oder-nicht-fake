@@ -1,0 +1,41 @@
+import { chromium } from '@playwright/test';
+import { mkdirSync } from 'node:fs';
+import path from 'node:path';
+import { createQuizServer } from '../server/app.js';
+import { projectRoot } from '../server/content.js';
+import { io } from 'socket.io-client';
+import { once } from 'node:events';
+import { localAddresses } from '../server/network.js';
+if(!process.env.DB_PATH)throw new Error('DB_PATH einer geprüften Review-Kopie angeben. Screenshots verändern diese Kopie durch Demo-Räume.');
+const server=createQuizServer({dbPath:process.env.DB_PATH,hostKey:'documentation-only'});
+await server.listen(0,'0.0.0.0');
+const base=`http://127.0.0.1:${server.http.address().port}`;
+const joinBase=localAddresses(server.http.address().port)[0];
+if(!joinBase){await server.close();throw new Error('Für QR-Vorschauen ist eine erreichbare LAN-Adresse nötig.');}
+let browser,control;
+try{
+  browser=await chromium.launch({channel:process.env.PW_CHANNEL||undefined});
+  const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+  const dir=path.join(projectRoot,'docs');mkdirSync(dir,{recursive:true});
+  const ready=async p=>p.evaluate(async()=>{await document.fonts.ready;await Promise.all(Array.from(document.images).filter(img=>img.getAttribute('src')&&!img.hidden).map(img=>img.decode()));});
+  await page.goto(base);await ready(page);await page.screenshot({path:path.join(dir,'start-desktop.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(dir,'start-mobile.png'),fullPage:true});
+  await page.setViewportSize({width:1440,height:1080});await page.goto(`${base}/admin`);
+  await page.getByLabel('Moderationsschlüssel').fill('documentation-only');await page.getByRole('button',{name:'Anmelden',exact:true}).click();
+  await page.locator('.question-select').filter({hasText:'Echtes Bild. Richtiges Datum?'}).click();await page.waitForFunction(()=>document.querySelector('#image-preview')?.naturalWidth>0);await ready(page);
+  await page.screenshot({path:path.join(dir,'admin-desktop.png'),fullPage:true});
+  const room=await(await fetch(`${base}/api/rooms`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hostKey:'documentation-only',mode:'learning-v1',setId:'stand-6',duration:75,joinBase})})).json();
+  control=io(base,{transports:['websocket']});await once(control,'connect');
+  const emit=(event,payload)=>new Promise(resolve=>control.emit(event,payload,resolve));
+  const command=async action=>{const watched=await emit('watch',{room:room.room,hostToken:room.hostToken});const s=watched.state;const result=await emit('host:action',{action,commandId:crypto.randomUUID(),expectedRevision:s.revision,expectedPhase:s.phase,expectedIndex:s.index});if(!result.ok)throw new Error(result.error);};
+  await page.goto(`${joinBase}/?code=${room.room}`);await page.getByLabel('Dein Spitzname').fill('Bergfuchs');await page.waitForFunction(()=>document.querySelector('#connection')?.classList.contains('connected'));
+  await page.getByRole('button',{name:'Ich rate mit'}).click();await page.getByRole('heading',{name:'Dein Platz ist reserviert.'}).waitFor();
+  const screen=await browser.newPage({viewport:{width:1920,height:1080},reducedMotion:'reduce'});await screen.goto(`${joinBase}/screen?code=${room.room}`);await screen.locator('.qr').waitFor();await ready(screen);await screen.screenshot({path:path.join(dir,'beamer-lobby.png'),fullPage:true});
+  await command('start');await page.locator('.learning-choices').waitFor();await ready(page);await page.screenshot({path:path.join(dir,'quiz-desktop.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(dir,'quiz-mobile.png'),fullPage:true});
+  await page.locator('[data-choice="insufficient"]').click();await command('reveal');await command('reveal_step');await screen.locator('.source-card').first().waitFor();await ready(screen);
+  await screen.screenshot({path:path.join(dir,'beamer-beleg.png'),fullPage:true});
+  await command('reveal_step');await screen.locator('.verdict-card').waitFor();await screen.screenshot({path:path.join(dir,'beamer-urteil.png'),fullPage:true});
+  await command('reveal_step');await screen.locator('.transfer-card').waitFor();await screen.screenshot({path:path.join(dir,'beamer-transfer.png'),fullPage:true});
+  console.log('App-, Admin-, Handy- und Beamer-Vorschauen aus der Review-SQLite geschrieben.');
+}finally{control?.disconnect();await browser?.close();await server.close();}

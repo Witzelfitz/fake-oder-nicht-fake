@@ -14,6 +14,7 @@ test('Moderation, Beamer und zwei Handys spielen acht Runden inklusive Reload un
     const host = await hostContext.newPage(), player = await mobileContext.newPage(), second = await secondContext.newPage(), screen = await screenContext.newPage();
     for (const page of [host, player, second, screen]) page.on('pageerror', error => errors.push(error.message));
     await host.goto('/host');
+    await host.getByLabel('Modus',{exact:true}).selectOption('speed-streak-v2');
     await host.getByLabel('Moderationsschlüssel').fill('browser-test-key');
     await host.getByLabel('Adresse für die Handys').fill('http://127.0.0.1:3199');
     await host.getByRole('button', { name: /Spielraum erstellen/ }).click();
@@ -36,7 +37,7 @@ test('Moderation, Beamer und zwei Handys spielen acht Runden inklusive Reload un
       await expect(screen.getByRole('heading', { name: q.title })).toBeVisible();
       if (q.type !== 'text') {
         await expect(player.locator('.image-example img')).toBeVisible();
-        expect(await player.locator('.image-example img').evaluate(img => img.complete && img.naturalWidth > 0)).toBeTruthy();
+        await expect.poll(()=>player.locator('.image-example img').evaluate(img => img.complete && img.naturalWidth > 0)).toBeTruthy();
       }
       await player.locator(`[data-choice="${q.answer}"]`).click();
       await second.locator(`[data-choice="${index === 0 ? (q.answer === 'ai' ? 'human' : 'ai') : q.answer}"]`).click();

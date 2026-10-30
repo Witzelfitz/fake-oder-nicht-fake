@@ -16,6 +16,7 @@ test('eigene Texte und Bilder erstellen, bearbeiten, sortieren, deaktivieren und
   await page.getByLabel('Moderationsschlüssel').fill('browser-test-key');
   await page.getByRole('button', { name: 'Anmelden', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Fragen', exact: true })).toBeVisible();
+  await page.locator('#q-learning').uncheck();
   await page.getByLabel('Format', { exact: true }).selectOption('text');
   await page.getByLabel('Richtige Herkunft').selectOption('human');
   await page.getByLabel('Fragetitel').fill('Eigener Quiztext');
@@ -29,6 +30,7 @@ test('eigene Texte und Bilder erstellen, bearbeiten, sortieren, deaktivieren und
   await page.getByLabel('Quiztext', { exact: true }).fill('Überarbeiteter eigener Text.');
   page.once('dialog', dialog => dialog.dismiss());
   await page.getByRole('button', { name: 'Neue Frage', exact: true }).click();
+  await page.locator('#q-learning').uncheck();
   await expect(page.getByLabel('Quiztext', { exact: true })).toHaveValue('Überarbeiteter eigener Text.');
   await page.getByLabel('In neuen Runden verwenden').uncheck();
   await page.getByRole('button', { name: 'Frage speichern', exact: true }).click();
@@ -36,6 +38,7 @@ test('eigene Texte und Bilder erstellen, bearbeiten, sortieren, deaktivieren und
   await page.getByRole('button', { name: 'Nach oben: Eigener Quiztext', exact: true }).click();
   await expect(page.locator('.q-item').nth(7)).toContainText('Eigener Quiztext');
   await page.getByRole('button', { name: 'Neue Frage', exact: true }).click();
+  await page.locator('#q-learning').uncheck();
   await page.getByLabel('Richtige Herkunft').selectOption('human');
   await page.getByLabel('Fragetitel').fill('Eigenes Foto');
   await page.getByLabel('Bild hochladen').setInputFiles(fileURLToPath(new URL('../../content/assets/mountain.jpg', import.meta.url)));
