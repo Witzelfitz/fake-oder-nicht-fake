@@ -1,18 +1,19 @@
-# Mit Coolify veröffentlichen
+# Coolify-Betrieb
 
-Das Repository enthält das vollständige Dockerfile. Die Anwendung benötigt eine einzelne Node-Instanz mit dauerhaftem SQLite-/Upload-Verzeichnis. Eine zusätzliche Datenbank-Ressource ist nicht nötig.
+Live unter **https://ki.mmacodeclub.ch**. Ein einzelner Node-24-Alpine-Container mit Express, Socket.IO und SQLite. Keine zusätzliche Datenbank, kein Redis und keine Browser-/PDF-Werkzeuge im Laufzeitbetrieb.
 
-## GitHub und Anwendung
+## Ressource
 
-In Coolify eine Anwendung mit Zugriff auf das öffentliche Repository `Witzelfitz/fake-oder-nicht-fake` verbinden. Branch: **main**. Als Build Pack / Build Strategy **Dockerfile** wählen. Das Laufzeitimage basiert auf Node 24 Alpine und enthält nur Produktionsabhängigkeiten. Base Directory ist das Repository-Wurzelverzeichnis (`/`); Dockerfile Location ist `Dockerfile` in diesem Verzeichnis. Start- und Installationsbefehl übernimmt das Dockerfile.
+- Projekt: **Fake oder nicht fake**, Umgebung **production**.
+- Anwendung: `zegtndfpm5owvtqkf785djrm`.
+- Server: **localhost / witzelfitz-coolify-01**, `91.99.71.154`. Die Domain zeigt direkt dorthin.
+- Repository: `Witzelfitz/fake-oder-nicht-fake`, Branch `main`, Build Pack **Dockerfile**.
+- Port `3000` nur intern; HTTPS und WebSockets über den vorhandenen Coolify-Proxy.
+- Limit **256 MiB RAM**, **0.5 CPU**, kein zusätzlicher Container-Swap; Node-Heap maximal 128 MiB.
+- **Consistent Container Name** einschalten. Beim Redeploy endet die alte Instanz zuerst, damit nie zwei Serverprozesse dieselbe SQLite-Datei öffnen.
+- Automatische Deployments und Vorschau-Deployments sind aus. Updates bewusst über Coolify deployen. Zwei Imageversionen behalten.
 
-**Ports Exposes: `3000`**. Die öffentliche HTTPS-Domain auf diese Anwendung richten. Der Prozess lauscht über `HOST=0.0.0.0` auf dem Containerport. Eine öffentliche direkte Portfreigabe auf dem Host ist für den Zugriff über den Coolify-Proxy nicht nötig.
-
-Offizielle Anleitung: [Dockerfile-Anwendungen](https://coolify.io/docs/applications/builds/dockerfile).
-
-## Laufzeitvariablen
-
-In Coolify als Runtime Environment Variables hinterlegen, ohne sie ins Repository zu schreiben:
+## Laufzeitvariablen und Daten
 
 | Variable | Wert |
 | --- | --- |
@@ -20,48 +21,33 @@ In Coolify als Runtime Environment Variables hinterlegen, ohne sie ins Repositor
 | `HOST` | `0.0.0.0` |
 | `PORT` | `3000` |
 | `DB_PATH` | `/app/data/quiz.sqlite` |
-| `HOST_KEY` | Ein eigener langer zufälliger Moderationsschlüssel |
-| `PUBLIC_URL` | Deine tatsächliche HTTPS-Domain, ohne abschliessenden Slash |
+| `PUBLIC_URL` | `https://ki.mmacodeclub.ch` |
+| `NODE_OPTIONS` | `--max-old-space-size=128` |
+| `HOST_KEY` | Bestehender geheimer Moderationsschlüssel in Coolify |
 
-`HOST_KEY` bleibt so bei Neustarts gleich. Er schützt Moderation, Fragenverwaltung und Publikationen. `PUBLIC_URL` wird für die Beitrittslinks und QR-Codes verwendet; hier die wirkliche Adresse eintragen. Diese Variablen werden erst beim Start benötigt, nicht als Build-Argumente.
+Das explizite benannte Volume unter `/app/data` enthält SQLite samt WAL und Uploads. Der Container läuft als `node` (UID/GID 1000). Die Variablen werden nur zur Laufzeit gesetzt, nicht in das Image gebaut.
 
-## Daten dauerhaft speichern
+Der Schlüssel bleibt derselbe und wurde beim ersten Deployment über @pawicobot an den privaten Owner-Chat gesendet. Er steht weder im Repository noch in dieser Dokumentation.
 
-Vor dem ersten Deploy unter **Persistent Storage** einen benannten **Volume Mount** einrichten, beispielsweise `fake-quiz-data`, mit **Destination Path `/app/data`**. Darin liegen SQLite inklusive ihrer WAL-Dateien, Fragen, Antworten, Publikationssnapshots und `uploads/`. Das `VOLUME` im Dockerfile ersetzt diese ausdrückliche Coolify-Konfiguration nicht.
+## Healthcheck
 
-Der Container läuft als Benutzer `node` (UID/GID 1000). Das Volume muss für diesen Benutzer beschreibbar sein; bei selbst verwalteten Bind Mounts die Eigentumsrechte entsprechend einrichten. Das gesamte Datenverzeichnis mounten, nicht nur die einzelne SQLite-Datei.
+In Coolify 4.5.3 den zusätzlichen Dashboard-Healthcheck ausschalten. Der Container behält damit den im Dockerfile definierten Node-Check gegen `http://127.0.0.1:3000/api/health`. Das öffentliche Ergebnis muss `{"ok":true}` sein. Kein curl-Paket nötig.
 
-Eine Instanz betreiben. Bei Aktualisierungen laufende Gruppen vorher abschliessen und einen Austausch des Containers mit kurzer Unterbrechung einplanen. Zwei gleichzeitig aktive Instanzen auf derselben SQLite-Datei werden von dieser Anwendung nicht unterstützt. Preview-Deployments brauchen ein separates Datenvolume.
+## Medienquiz
 
-Ein Volume ist kein Backup. SQLite und Uploads zusammen sichern: entweder bei gestoppter Anwendung oder SQLite über die Backup-Schnittstelle konsistent sichern und die Uploads dazu kopieren. Nach einem Redeploy prüfen, dass eine eigene Testfrage noch vorhanden ist. Siehe [Coolify: Persistente Speicherung](https://coolify.io/docs/core/persistent-storage/storage-mounts/overview).
+Die sechs Bilder und vier sieben bis acht Sekunden kurzen Videos liegen im Image; zusammen ungefähr 5 MB. H.264-MP4 mit Faststart unterstützt Streaming und Byte-Range-Anfragen. Der Browser spielt die stummen Clips automatisch in Schleife; native Bedienelemente bleiben verfügbar. Eine Antwort zählt einen Treffer, ohne Tempo-/Serienboni.
 
-## Erster Start und Inhalte
+Beim ersten Start dieser Version tauscht `server/media-pack.js` die alte Bibliothek in einer SQLite-Transaktion gegen die zehn Medienrunden. Die alten Fragen werden vollständig unter `quiz_meta.bank_archive_before_simple_20261030` archiviert; vorhandene Raum-Snapshots und Uploads bleiben erhalten. Der Marker `simple_media_pack_20261030` verhindert, dass spätere Neustarts eigene Änderungen oder eine absichtlich geleerte Bibliothek zurücksetzen. Vor der Live-Umstellung wird zusätzlich ein konsistentes SQLite-Backup im Anwendungsverzeichnis unter `backups/` angelegt.
 
-Nach dem Deploy zuerst `https://DEINE-DOMAIN/api/health` öffnen; die Antwort lautet `{"ok":true}`. Unter `/admin` mit deinem `HOST_KEY` anmelden. **Lernpaket importieren** zeigt die zwölf neuen Lernfälle in einer Vorschau; anschliessend die neuen IDs ergänzen. Ein frisches Volume enthält zunächst nur die bisherige Bibliothek. Lokal erstellte eigene Fragen und Uploads werden nicht über GitHub übertragen. Falls du diese übernehmen möchtest, das gemeinsam gesicherte Datenverzeichnis vor dem ersten produktiven Start in das Volume übertragen und passende Dateirechte setzen.
+Neue Gruppen immer unter **/host** erstellen. Alte Raumlinks führen nach dem Update zur neuen Moderation. Die neuen Medien lassen sich unter **/admin** verwalten. Werkstatt, Lernpaketimport, Quellenkarten und Publikations-APIs sind im normalen Betrieb deaktiviert. `/materials` und `/stand.html` leiten zur Moderation weiter. Alte Datenformate werden intern nur zur Kompatibilität erhalten.
 
-Danach unter `/host` eine Stand-Challenge mit `stand-6` erstellen. Mit zwei Geräten über die öffentliche Domain beitreten, auf «Live verbunden» achten und eine Abstimmung samt Auflösung testen. In `/materials` Anlass und Ressourcen prüfen. Allgemeine Druckplakate können sofort verwendet werden; ein Raumplakat erst nach Prüfung des tatsächlichen QR-Ziels ausgeben.
+## Prüfung und Abschalten
 
-Der Docker-Healthcheck nutzt das bereits vorhandene Node.js und `GET /api/health` auf `127.0.0.1`. Er benötigt weder curl noch wget. In Coolify 4.5.3 den zusätzlichen Dashboard-Healthcheck ausschalten, damit der im Dockerfile definierte Check erhalten bleibt. Ein eingeschalteter Dashboard-Check überschreibt den Image-Check. Bei einem alternativ verwendeten HTTP-Check ausdrücklich `127.0.0.1` statt `localhost` setzen, weil der Prozess auf IPv4 lauscht. Details: [Coolify: Health Checks](https://coolify.io/docs/applications/configuration/health-checks).
+```sh
+npm run verify
+npm run test:e2e
+```
 
-Die geschützten Druckansichten unter `/materials` funktionieren im Produktionscontainer; dort kannst du im Browser als PDF speichern. Der automatisierte PDF-Dateisatz-Build mit Chromium/Python bleibt ein separates lokales Werkzeug und wird nicht im schlanken Produktionsimage installiert. Die fertigen Dateisätze stehen im GitHub-Repository unter `docs/materials/`.
+Danach öffentlich Healthcheck, Anmeldung, QR, Bilder, alle vier MP4s und eine vollständige Runde mit WebSockets prüfen. Der Browser-Test prüft echte Video-Decodierung und dass Stimmabgaben anderer Personen laufende Clips nicht neu starten.
 
-## Prüfstand
-
-Die Anwendung wurde mit 31 Serverchecks und sechs Browserabläufen geprüft. Der Healthcheck-Befehl wird lokal gegen den laufenden Server sowie mit nicht erreichbarem Ziel geprüft.
-
-## Betrieb unter ki.mmacodeclub.ch
-
-Coolify-Projekt **Fake oder nicht fake**, Umgebung **production**, Anwendung `zegtndfpm5owvtqkf785djrm` auf **localhost / witzelfitz-coolify-01**. Die Domain zeigt bereits direkt auf diesen Server; für den kleinen Einabendbetrieb ist kein weiterer Proxy oder Server nötig.
-
-- Öffentlicher Einstieg: https://ki.mmacodeclub.ch
-- Moderation: https://ki.mmacodeclub.ch/host
-- Fragenverwaltung: https://ki.mmacodeclub.ch/admin
-- Druckmaterial: https://ki.mmacodeclub.ch/materials
-- Ein Container, maximal **256 MiB RAM**, **0.5 CPU**, kein zusätzlicher Swap; Node-Heap maximal 128 MiB.
-- Persistentes benanntes Volume unter `/app/data` für SQLite und Uploads. `DB_PATH=/app/data/quiz.sqlite`, `PUBLIC_URL=https://ki.mmacodeclub.ch`.
-- Fester zufälliger `HOST_KEY` ausschliesslich in den Coolify-Laufzeitvariablen; Zugang wird dem privaten Owner-Chat von **@pawicobot** übermittelt.
-- **Consistent Container Name** eingeschaltet, damit bei einem Redeploy die alte Instanz zuerst endet und niemals zwei Prozesse dieselbe SQLite-Datei öffnen.
-- Automatische Deployments und Vorschau-Deployments ausgeschaltet. Updates bewusst über Coolify deployen, nachdem aktive Gruppen abgeschlossen sind. Zwei Imageversionen behalten.
-- Kein veröffentlichter Hostport. HTTPS und WebSockets laufen über den vorhandenen Coolify-Proxy.
-
-Zum Abschalten nach dem Anlass nur diese Anwendung in Coolify stoppen; Projekt und Datenvolume erhalten. Ein neuer Start verwendet denselben Schlüssel und dieselben gespeicherten Daten. Kein automatisches Abschaltdatum gesetzt.
+Nach dem Anlass nur diese Anwendung in Coolify stoppen; Datenvolume und Projekt erhalten. Es ist kein automatisches Abschaltdatum gesetzt.
