@@ -6,7 +6,9 @@ import path from 'node:path';
 import { Server } from 'socket.io';
 import QRCode from 'qrcode';
 import { openDatabase } from './database.js';
-import { loadDeck, publicQuestion, projectRoot, contentRoot } from './content.js';
+import { loadDeck, publicQuestion, projectRoot, contentRoot, resolveAsset } from './content.js';
+import { questionBank, installQuestionAdmin } from './questions.js';
+import { SCORING_VERSION, DURATIONS, scoreAnswer, rankPlayers } from './scoring.js';
 
 const hash = value => createHash('sha256').update(String(value ?? '')).digest('hex');
 const matches = (value, expected) => timingSafeEqual(Buffer.from(hash(value)), Buffer.from(expected));
@@ -17,7 +19,8 @@ const fail = message => { throw new Error(message); };
 
 export function createQuizServer(options = {}) {
   const db = openDatabase(options.dbPath ?? './data/quiz.sqlite');
-  const deck = options.deck ?? loadDeck();
+  const bank = questionBank(db, options.deck ?? loadDeck());
+  const uploadRoot = path.resolve(options.uploadDir ?? path.join(path.dirname(path.resolve(options.dbPath && options.dbPath !== ':memory:' ? options.dbPath : './data/quiz.sqlite')), 'uploads'));
   const hostKey = options.hostKey || token().slice(0, 16);
   const hostHash = hash(hostKey);
   const publicUrl = options.publicUrl?.replace(/\/$/, '');
@@ -28,12 +31,12 @@ export function createQuizServer(options = {}) {
     res.set({
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer',
-      'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+      'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
       'Cache-Control': 'no-store'
     });
     next();
   });
-  app.use(express.json({ limit: '8kb' }));
+  app.use(express.json({ limit: '64kb' }));
   const http = createServer(app);
   const io = new Server(http, { maxHttpBufferSize: 8192, serveClient: true });
   const timers = new Map();
@@ -50,22 +53,25 @@ export function createQuizServer(options = {}) {
   const getRoom = id => db.prepare('SELECT * FROM rooms WHERE id = ?').get(String(id ?? ''));
   const roomDeck = room => JSON.parse(room.deck_json);
   const getPlayers = id => db.prepare('SELECT id, nickname FROM players WHERE room_id = ? ORDER BY joined_at, id').all(id);
-  const getAnswer = (player, q) => db.prepare('SELECT choice, points FROM answers WHERE player_id = ? AND question_id = ?').get(player, q);
+  const getAnswer = (player, q) => db.prepare('SELECT * FROM answers WHERE player_id = ? AND question_id = ?').get(player, q);
   function leaderboard(id) {
-    return db.prepare(`SELECT p.id, p.nickname, COALESCE(SUM(a.points), 0) AS score,
-      COUNT(a.question_id) AS answered, COALESCE(SUM(CASE WHEN a.points > 0 THEN 1 ELSE 0 END), 0) AS correct
-      FROM players p LEFT JOIN answers a ON a.player_id = p.id WHERE p.room_id = ?
-      GROUP BY p.id ORDER BY score DESC, p.joined_at ASC, p.id ASC`).all(id)
-      .map((p, i, rows) => ({ ...p, rank: i && rows[i - 1].score === p.score ? rows.findIndex(x => x.score === p.score) + 1 : i + 1 }));
+    const room = getRoom(id);
+    const players = getPlayers(id);
+    const answers = db.prepare('SELECT a.* FROM answers a JOIN players p ON p.id = a.player_id WHERE p.room_id = ?').all(id);
+    const rows = rankPlayers(players, answers);
+    const current = roomDeck(room).questions[room.question_index]?.id;
+    const previous = rankPlayers(players, answers.filter(a => a.question_id !== current));
+    return rows.map(row => ({ ...row, movement: room.question_index > 0 ? (previous.find(p => p.id === row.id)?.rank ?? row.rank) - row.rank : 0 }));
   }
-  function globalLeaderboard() {
-    return db.prepare(`SELECT p.id, p.nickname, r.id AS room, SUM(a.points) AS score,
-      COUNT(a.question_id) AS answered, SUM(CASE WHEN a.points > 0 THEN 1 ELSE 0 END) AS correct
-      FROM players p JOIN rooms r ON r.id = p.room_id JOIN answers a ON a.player_id = p.id
-      WHERE r.phase = 'finished' AND r.deck_id = ?
-      GROUP BY p.id HAVING COUNT(a.question_id) = ?
-      ORDER BY score DESC, r.created_at ASC, p.id ASC LIMIT 20`).all(deck.id, deck.questions.length)
-      .map((p, i, rows) => ({ ...p, rank: rows.findIndex(x => x.score === p.score) + 1 }));
+  function globalLeaderboard(room = null, duration = 25) {
+    const deck = room ? roomDeck(room) : bank.deck();
+    if (!deck.questions.length) return [];
+    const args = [deck.id, room?.duration ?? duration, room?.scoring_version ?? SCORING_VERSION];
+    const where = "r.phase = 'finished' AND r.deck_id = ? AND r.duration = ? AND r.scoring_version = ?";
+    const players = db.prepare(`SELECT p.id, p.nickname, p.room_id FROM players p JOIN rooms r ON r.id = p.room_id WHERE ${where}`).all(...args);
+    const answers = db.prepare(`SELECT a.* FROM answers a JOIN players p ON p.id = a.player_id JOIN rooms r ON r.id = p.room_id WHERE ${where}`).all(...args);
+    const complete = players.filter(p => answers.filter(a => a.player_id === p.id).length === deck.questions.length);
+    return rankPlayers(complete, answers).slice(0, 20);
   }
   function view(room, identity = {}) {
     const questions = roomDeck(room).questions;
@@ -77,7 +83,7 @@ export function createQuizServer(options = {}) {
     const myAnswer = me && q ? getAnswer(me.id, q.id) : null;
     return {
       room: room.id, phase: room.phase, index: room.question_index, total: questions.length,
-      duration: room.duration, deadline: room.deadline, serverTime: Date.now(),
+      duration: room.duration, deadline: room.deadline, serverTime: Date.now(), scoringVersion: room.scoring_version,
       joinUrl: `${room.join_base}/?code=${room.id}`,
       players: room.phase === 'lobby' ? players : [], playerCount: players.length, answeredCount,
       question: publicQuestion(q, room.id, room.question_index),
@@ -87,9 +93,11 @@ export function createQuizServer(options = {}) {
         votes: db.prepare(`SELECT a.choice, COUNT(*) AS n FROM answers a JOIN players p ON p.id = a.player_id WHERE p.room_id = ? AND a.question_id = ? GROUP BY a.choice`).all(room.id, q.id)
       } : null,
       leaderboard: revealed ? leaderboard(room.id) : [],
-      globalLeaderboard: room.phase === 'finished' ? globalLeaderboard() : [],
+      globalLeaderboard: room.phase === 'finished' ? globalLeaderboard(room) : [],
       me: me ? { ...me, score: revealed ? leaderboard(room.id).find(p => p.id === me.id)?.score ?? 0 : null,
-        answer: myAnswer ? { choice: myAnswer.choice, ...(revealed ? { points: myAnswer.points } : {}) } : null } : null
+        answer: myAnswer ? { choice: myAnswer.choice, ...(revealed ? { points: myAnswer.points,
+          elapsedMs: myAnswer.elapsed_ms, base: myAnswer.base_points, speed: myAnswer.speed_bonus,
+          series: myAnswer.streak_bonus, streak: myAnswer.streak } : {}) } : null } : null
     };
   }
   function emitRoom(id) {
@@ -113,20 +121,37 @@ export function createQuizServer(options = {}) {
   }
   const baseForRequest = req => publicUrl || `${req.protocol}://${req.get('host')}`;
 
+  installQuestionAdmin(app, { db, bank, uploadRoot, authenticate: (req, res, next) => {
+    const key = req.get('authorization')?.replace(/^Bearer /, '') ?? '';
+    if (!matches(key, hostHash)) {
+      if (!rate(`admin-auth:${req.socket.remoteAddress}`, 20)) return res.status(429).json({ error: 'Zu viele Anmeldeversuche. Bitte eine Minute warten.' });
+      return res.status(401).json({ error: 'Moderationsschlüssel ungültig.' });
+    }
+    if (!rate(`admin:${req.socket.remoteAddress}`, 300)) return res.status(429).json({ error: 'Zu viele Anfragen. Bitte kurz warten.' });
+    next();
+  } });
+
   app.get('/api/config', (req, res) => {
     const port = http.address()?.port ?? 3000;
     const addresses = Object.values(networkInterfaces()).flat().filter(x => x && x.family === 'IPv4' && !x.internal)
       .map(x => `http://${x.address}:${port}`);
+    const deck = bank.deck();
     res.json({ title: deck.title, questionCount: deck.questions.length, publicUrl: publicUrl || null,
       suggestedUrls: [...new Set([...(publicUrl ? [publicUrl] : []), ...addresses, baseForRequest(req)])] });
   });
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
-  app.get('/api/leaderboard', (_req, res) => res.json({ entries: globalLeaderboard(), totalQuestions: deck.questions.length }));
+  app.get('/api/leaderboard', (req, res) => {
+    const duration = Number(req.query.duration ?? 25);
+    if (!DURATIONS.includes(duration)) return res.status(400).json({ error: 'Ungültige Antwortzeit.' });
+    res.json({ entries: globalLeaderboard(null, duration), totalQuestions: bank.deck().questions.length, duration });
+  });
   app.post('/api/rooms', (req, res) => {
     if (!rate(`create:${req.socket.remoteAddress}`, 20)) return res.status(429).json({ error: 'Zu viele Versuche. Bitte kurz warten.' });
     if (!matches(req.body?.hostKey, hostHash)) return res.status(403).json({ error: 'Der Moderationsschlüssel stimmt nicht. Du findest ihn im Server-Terminal.' });
     const duration = Number(req.body.duration ?? 25);
-    if (![15, 20, 25, 30, 45, 60].includes(duration)) return res.status(400).json({ error: 'Ungültige Antwortzeit.' });
+    if (!DURATIONS.includes(duration)) return res.status(400).json({ error: 'Ungültige Antwortzeit.' });
+    const deck = bank.deck();
+    if (!deck.questions.length) return res.status(400).json({ error: 'Bitte zuerst mindestens eine Frage in der Fragenverwaltung aktivieren.' });
     let base;
     try {
       const url = new URL(req.body.joinBase || baseForRequest(req));
@@ -136,8 +161,8 @@ export function createQuizServer(options = {}) {
     let id;
     do { id = String(randomInt(100000, 1000000)); } while (getRoom(id));
     const hostToken = token();
-    db.prepare('INSERT INTO rooms (id, host_hash, created_at, duration, deck_id, deck_json, join_base) VALUES (?, ?, ?, ?, ?, ?, ?)')
-      .run(id, hash(hostToken), Date.now(), duration, deck.id, JSON.stringify(deck), base);
+    db.prepare('INSERT INTO rooms (id, host_hash, created_at, duration, deck_id, deck_json, join_base, scoring_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(id, hash(hostToken), Date.now(), duration, deck.id, JSON.stringify(deck), base, SCORING_VERSION);
     res.status(201).json({ room: id, hostToken });
   });
   app.get('/api/qr', async (req, res, next) => {
@@ -154,13 +179,14 @@ export function createQuizServer(options = {}) {
     if (!room || !Number.isInteger(index) || index < 0 || index > room.question_index) return res.sendStatus(404);
     const q = roomDeck(room).questions[index];
     if (!q?.asset) return res.sendStatus(404);
-    const file = path.resolve(contentRoot, q.asset);
-    if (!file.startsWith(contentRoot + path.sep)) return res.sendStatus(404);
+    let file;
+    try { file = resolveAsset(q.asset, uploadRoot); } catch { return res.sendStatus(404); }
     res.set('Cache-Control', 'public, max-age=86400, immutable').sendFile(file);
   });
   // This decorative sample is a photo, not an answer key. No content directory is served.
   app.get('/sample', (_req, res) => res.set('Cache-Control', 'public, max-age=86400').sendFile(path.join(contentRoot, 'assets', 'mountain.jpg')));
   app.use(express.static(path.join(projectRoot, 'public')));
+  app.get('/admin', (_req, res) => res.sendFile(path.join(projectRoot, 'public', 'admin.html')));
   for (const route of ['/host', '/screen', '/leaderboard']) app.get(route, (_req, res) => res.sendFile(path.join(projectRoot, 'public', 'index.html')));
 
   io.on('connection', socket => {
@@ -228,8 +254,13 @@ export function createQuizServer(options = {}) {
       if (data.questionId !== q.id) fail('Diese Frage ist nicht mehr aktuell.');
       if (!['ai', 'human'].includes(data.choice)) fail('Bitte eine der zwei Antworten wählen.');
       if (getAnswer(socket.data.playerId, q.id)) fail('Deine Antwort ist schon gespeichert.');
-      db.prepare('INSERT INTO answers (player_id, question_id, choice, points, answered_at) VALUES (?, ?, ?, ?, ?)')
-        .run(socket.data.playerId, q.id, data.choice, data.choice === q.answer ? 1000 : 0, Date.now());
+      const now = Date.now();
+      const previousId = roomDeck(room).questions[room.question_index - 1]?.id;
+      const previous = previousId ? getAnswer(socket.data.playerId, previousId) : null;
+      const scored = scoreAnswer({ correct: data.choice === q.answer, elapsedMs: now - (room.started_at ?? room.deadline - room.duration * 1000), durationMs: room.duration * 1000, previousStreak: previous?.streak ?? 0 });
+      if (room.scoring_version === 'classic-v1') Object.assign(scored, { points: data.choice === q.answer ? 1000 : 0, base: data.choice === q.answer ? 1000 : 0, speed: 0, series: 0, elapsedMs: null, streak: 0 });
+      db.prepare('INSERT INTO answers (player_id, question_id, choice, points, answered_at, elapsed_ms, base_points, speed_bonus, streak_bonus, streak) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        .run(socket.data.playerId, q.id, data.choice, scored.points, now, scored.elapsedMs, scored.base, scored.speed, scored.series, scored.streak);
       done({ accepted: true });
       emitRoom(room.id);
     });
@@ -238,14 +269,16 @@ export function createQuizServer(options = {}) {
       const questions = roomDeck(room).questions;
       if (data.action === 'start' && room.phase === 'lobby') {
         if (!getPlayers(room.id).length) fail('Zuerst muss mindestens eine Person beitreten.');
-        db.prepare("UPDATE rooms SET phase = 'question', question_index = 0, deadline = ? WHERE id = ?").run(Date.now() + room.duration * 1000, room.id);
+        const now = Date.now();
+        db.prepare("UPDATE rooms SET phase = 'question', question_index = 0, started_at = ?, deadline = ? WHERE id = ?").run(now, now + room.duration * 1000, room.id);
       } else if (data.action === 'reveal' && room.phase === 'question') {
         reveal(room.id); done({}); return;
       } else if (data.action === 'next' && room.phase === 'reveal') {
         if (room.question_index + 1 === questions.length) {
           db.prepare("UPDATE rooms SET phase = 'finished', deadline = NULL WHERE id = ?").run(room.id);
         } else {
-          db.prepare("UPDATE rooms SET phase = 'question', question_index = question_index + 1, deadline = ? WHERE id = ?").run(Date.now() + room.duration * 1000, room.id);
+          const now = Date.now();
+          db.prepare("UPDATE rooms SET phase = 'question', question_index = question_index + 1, started_at = ?, deadline = ? WHERE id = ?").run(now, now + room.duration * 1000, room.id);
         }
       } else fail('Diese Aktion passt nicht zum aktuellen Spielstand.');
       schedule(getRoom(room.id));
@@ -254,7 +287,8 @@ export function createQuizServer(options = {}) {
     });
   });
   app.use((error, _req, res, _next) => {
-    if (error.type === 'entity.too.large' || error instanceof SyntaxError) return res.status(400).json({ error: 'Ungültige Anfrage.' });
+    if (error.type === 'entity.too.large') return res.status(413).json({ error: 'Datei oder Anfrage zu gross. Bilder: maximal 12 MB.' });
+    if (error instanceof SyntaxError) return res.status(400).json({ error: 'Ungültige Anfrage.' });
     console.error(error.message);
     res.status(500).json({ error: 'Serverfehler. Bitte die Moderation informieren.' });
   });

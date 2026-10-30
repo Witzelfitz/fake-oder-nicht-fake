@@ -1,6 +1,6 @@
 # Fake oder nicht fake?
 
-Ein spielbarer MVP für **Stand 02 am Digimärt Alpnach, 4. November 2026**. Acht Beispiele aus Fotografie, Text und Werbung zeigen, was generative KI erzeugen kann. Die Gruppe stimmt auf dem Handy ab; die Moderation steuert den gemeinsamen Ablauf.
+Ein spielbarer MVP für **Stand 02 am Digimärt Alpnach, 4. November 2026**. Acht mitgelieferte Beispiele aus Fotografie, Text und Werbung zeigen, was generative KI erzeugen kann. Eigene Fragen lassen sich im kleinen Backend erstellen. Die Gruppe stimmt auf dem Handy ab; die Moderation steuert den gemeinsamen Ablauf. Das schlichte Layout stellt den jeweiligen Inhalt in den Mittelpunkt.
 
 **Stack:** Node.js 24 LTS, Express 5, Socket.IO 4, SQLite (`node:sqlite`), Vanilla JavaScript. Kein Build-Schritt, keine laufenden KI-API-Kosten, keine externen Laufzeit-CDNs. Alle Beispielbilder und der QR-Generator sind enthalten.
 
@@ -30,6 +30,7 @@ Die Erstinstallation braucht Internet. Danach funktioniert der Betrieb im lokale
 | --- | --- |
 | `/` | Beitreten mit Spielcode und Spitzname; danach persönliche Abstimmung |
 | `/host` | Geschützte Moderation, neue Gruppe, Start, Auflösung, nächste Frage |
+| `/admin` | Geschützte Fragenverwaltung mit Bild-Upload, Texteingabe und Reihenfolge |
 | `/screen?code=123456` | Beameransicht ohne Steuerrechte |
 | `/leaderboard` | Gespeicherte Stand-Rangliste; aktualisiert sich alle zehn Sekunden |
 | `/stand.html` | Druckbares Standplakat, Moderationskarte und Merkblatt |
@@ -39,16 +40,30 @@ Die Moderation ist pro Raum über einen zufälligen Zugang geschützt. Der Host-
 
 ![Desktop-Vorschau](docs/start-desktop.png)
 
+[Quizansicht](docs/quiz-desktop.png) · [Handyansicht](docs/quiz-mobile.png) · [Fragenverwaltung](docs/admin-desktop.png)
+
 ## Regeln und Ablauf
 
 - Pro Gruppe ein neuer Raum, bis zu 100 Beitritte; ab dem Quizstart sind neue Beitritte gesperrt. Bereits angemeldete Geräte können sich wieder verbinden.
 - Antwortzeit wählbar: 15, 20, 25, 30, 45 oder 60 Sekunden.
 - Ein Tipp pro Frage; nur der Server entscheidet über Frist und Punkte. Antworten sind nach der Auswahl unveränderbar.
-- Richtiger Tipp: **1’000 Punkte**, falscher oder fehlender Tipp: 0. Kein Zeitbonus; gleiche Punktzahl bedeutet gleichen Rang.
+- Richtiger Tipp: **1’000 Basispunkte + bis zu 500 Tempopunkte + bis zu 400 Serienpunkte**. Falsch oder nicht abgestimmt: 0 Punkte und Unterbrechung der Trefferfolge.
 - Zeitablauf öffnet automatisch die Auflösung. Die Moderation darf früher auflösen und schaltet danach selbst weiter.
 - Antworten, Punkte und Spielphase werden in SQLite gespeichert. Auch ein Server-Neustart erhält die Runde; eine inzwischen abgelaufene Frage wird aufgelöst.
-- Die Stand-Rangliste zählt nur beendete Runden, in denen die Person alle Fragen beantwortet hat. Sie vergleicht nur das aktuelle, identische Fragenset. Unvollständige Teilnahmen bleiben in der Gruppenrangliste sichtbar.
+- Die Stand-Rangliste zählt nur beendete Runden, in denen die Person alle Fragen beantwortet hat. Sie vergleicht dasselbe Fragenset, dieselbe Antwortzeit und dieselbe Wertungsversion. In der separaten Ranglistenansicht lässt sich die Antwortzeit auswählen. Unvollständige Teilnahmen bleiben in der Gruppenrangliste sichtbar.
 - Nach dem Ergebnis mit **Neue Gruppe** einen neuen Raum erstellen. Alte Ergebnisse bleiben erhalten.
+
+### Tempo, Serie und Rang
+
+Der Zeitbonus fällt linear von 500 auf 0 Punkte über die gesamte Antwortzeit: `round(500 × (1 − Antwortzeit / Zeitlimit))`. Die Antwortzeit misst der Server ab Fragenstart bis zum Eingang der Antwort; vom Handy übermittelte Zeiten oder Punkte werden ignoriert. Netzwerk- und Ladezeiten sind darin enthalten.
+
+Ab dem zweiten richtigen Tipp in Folge gibt es 100 Serienpunkte, ab dem dritten 200, ab dem vierten 300 und ab dem fünften jeweils 400. Eine falsche oder ausgelassene Frage setzt die Folge zurück. Maximal sind 1’900 Punkte pro Frage möglich.
+
+Beispiel bei 20 Sekunden Zeitlimit: Ein richtiger Tipp nach 5 Sekunden mit einer vorherigen Zweier-Serie ergibt `1’000 + 375 + 200 = 1’575` Punkte.
+
+Sortiert wird nach Gesamtpunkten, dann richtigen Antworten und danach durchschnittlicher Zeit der richtigen Antworten (auf Millisekunden gerundet). Identische Werte teilen sich den Rang. Die Tabelle zeigt Treffer, Durchschnittszeit und längste Serie; in der Gruppe zusätzlich die Rangänderung zur vorherigen Auflösung. Die persönliche Auflösung zeigt die genaue Punkteaufteilung.
+
+Bestehende Datenbanken werden beim Start automatisch migriert. Vorhandene Räume behalten die frühere 1’000-Punkte-Wertung und werden nicht mit neuen Ergebnissen vermischt.
 
 ## Didaktischer Rahmen
 
@@ -56,7 +71,7 @@ Die Antwortmöglichkeiten heissen **«Mit KI erzeugt»** und **«Ohne generative
 
 Vier Beispiele stammen aus dokumentierten menschlichen Quellen und vier wurden für das Quiz generiert. Das Fronalpstock-Panorama ist fotografiert und digital zusammengesetzt. Das historische Plakat ist gestaltet, nicht fotografisch realistisch. Der KI-Wolkentext ist sachlich zutreffend. Die historischen Texte sind bewusst ein leichter Einstieg und kein repräsentativer Blindtest moderner Alltagstexte.
 
-**Kernbotschaft:** Quelle suchen, Kontext prüfen, zweite Quelle finden. Visuelle Fehler und Schreibstil sind Anhaltspunkte, aber kein sicherer KI-Nachweis. Das Quiz ist keine Erkennungssoftware und keine belastbare Messung der individuellen Medienkompetenz. Reihenfolge und Beispiellösungen sind im MVP fest; Wiederholungen beeinflussen die Rangliste.
+**Kernbotschaft:** Quelle suchen, Kontext prüfen, zweite Quelle finden. Visuelle Fehler und Schreibstil sind Anhaltspunkte, aber kein sicherer KI-Nachweis. Das Quiz ist keine Erkennungssoftware und keine belastbare Messung der individuellen Medienkompetenz. Wiederholungen derselben Beispiele beeinflussen die Rangliste.
 
 ## Standunterlagen
 
@@ -85,15 +100,23 @@ docker build -t fake-quiz .
 docker run --rm -p 3000:3000 --env-file .env -v fake-quiz-data:/app/data fake-quiz
 ```
 
-## Eigene Beispiele ergänzen
+## Eigene Fragen im Backend
 
-1. `content/questions.json` ändern; neue Bilddateien in `content/assets/` ablegen.
-2. Jede Frage braucht eine eindeutige ID, Typ `photo`, `text` oder `poster`, Lösung `ai` oder `human`, neutrale Überschrift, Erklärung, Merksatz, Herkunftslink, Urheber und Lizenz. Herkunftslinks sind HTTPS-Adressen; für die projektinternen KI-Beispiele ist `/sources.html#ki-beispiele` vorgesehen.
-3. Bei Texten `text`, bei Bildern `asset` als Pfad relativ zu `content/` angeben.
-4. Herkunft und Nutzungsrechte prüfen, `content/provenance.json`, `ASSETS.md` und die öffentliche Quellenansicht nachführen.
-5. `npm run verify` ausführen und den Server neu starten.
+1. `/admin` öffnen und mit dem **Moderationsschlüssel aus dem Terminal** anmelden.
+2. **Neue Frage** wählen, Format und richtige Herkunft festlegen, Titel eingeben.
+3. Foto/Plakat als **PNG, JPEG oder WebP bis 12 MB** hochladen oder einen Text einfügen.
+4. Eine Erklärung zur Auflösung eintragen. Merksatz, Quellenlink, Urheber und Nutzungsangaben lassen sich ergänzen.
+5. **In neuen Runden verwenden** wählen und speichern. Über die Pfeile in der Liste die Reihenfolge anpassen.
 
-Das Server-Fragenset wird beim Start geladen. Bestehende Räume behalten eine Kopie ihres bisherigen Fragensets, damit ihre Wertung stabil bleibt. Bilder alter Räume müssen bis zum Abschluss erhalten bleiben. Ein neues Fragenset erhält automatisch eine neue Kennung für die Stand-Rangliste. Vor der Auflösung überträgt der Server weder Lösung, Erklärung noch Punktestand zur aktuellen Antwort. Die Quellenansicht und ein zugängliches Repository können dennoch Hinweise auf Lösungen geben; das ist kein prüfungssicheres System.
+Bestehende Fragen können bearbeitet, deaktiviert und gelöscht werden. Löschen verlangt eine zweite Bestätigung. Gleichzeitige Änderungen an einer Frage werden erkannt, statt gespeicherte Fassungen still zu überschreiben. Ein Neustart nach Änderungen ist nicht nötig; die aktuelle aktive Bibliothek wird beim Erstellen einer neuen Runde übernommen. Mindestens eine aktive Frage ist erforderlich.
+
+Beim ersten Start wird die Bibliothek einmalig aus `content/questions.json` in SQLite übernommen. Danach ist die **SQLite-Bibliothek** massgeblich; Änderungen an der Seed-Datei überschreiben eigene Inhalte nicht. Nach dem Löschen aller Fragen wird die Bibliothek beim Neustart nicht erneut befüllt.
+
+Eigene Fragen liegen in derselben SQLite-Datei wie die Ergebnisse. Uploads liegen in `uploads/` neben der Datenbank, standardmässig also `data/uploads/`. Für ein Backup den Server stoppen und Datenbank **und** Upload-Ordner zusammen sichern. Eigene Materialien werden durch `.gitignore` vom GitHub-Upload ausgeschlossen. Beim Docker-Betrieb beide über das `data/`-Volume sichern.
+
+Jeder Raum erhält einen unveränderlichen Schnappschuss seines Fragensets. Bearbeiten oder Löschen einer Frage verändert laufende Räume nicht. Deshalb bleiben auch nicht mehr verwendete Upload-Dateien auf der Festplatte erhalten; eine automatische Medienbereinigung ist nicht eingebaut. Ein geändertes Fragenset erhält eine neue Kennung für die Stand-Rangliste.
+
+Der Admin-Schlüssel wird für diesen Browser-Tab im Session Storage gespeichert. Abmelden entfernt ihn dort. Schreibzugriffe und Bildvorschauen sind serverseitig geschützt. Vor der Auflösung überträgt der Spielserver weder Lösung, Erklärung noch Bonuswerte der aktuellen Antwort. Die Quellenansicht und ein zugängliches Repository können dennoch Hinweise geben; das ist kein prüfungssicheres System.
 
 ## Tests
 
@@ -105,7 +128,7 @@ npm run test:e2e
 
 Alternativ mit vorhandenem Chrome unter PowerShell: `$env:PW_CHANNEL='chrome'; npm run test:e2e`.
 
-Die Integrationstests verwenden echte Socket.IO-Verbindungen und temporäre SQLite-Dateien. Sie prüfen u. a. Moderationsrechte, Antwortfristen, doppelte Antworten, Punkte, Wiederverbindung, Neustarts und Ranglisten. Der Browser-Test spielt acht echte Fragen mit Moderation, Beamer und zwei getrennten mobilen Browser-Kontexten, inklusive Neuladen. Eine GitHub-Actions-Vorlage unter `docs/github-actions-workflow.yml.example` führt beide Tests unter Node 24 aus. Sie ist noch nicht aktiviert: Der für diesen Upload verfügbare GitHub-Zugang hat keine `workflow`-Berechtigung. Zur Aktivierung die Vorlage über die GitHub-Weboberfläche unter `.github/workflows/test.yml` anlegen oder mit einem entsprechend berechtigten Zugang hochladen.
+Die Tests prüfen Moderationsrechte, Antwortfristen, serverseitige Punkte, Tempo- und Serienboni, Rangfolgen, Wiederverbindung, Neustarts und die Migration vorhandener Daten. Die Fragenverwaltung wird inklusive Upload, Versionierung, Reihenfolge, Deaktivierung und Löschung getestet. Browser-Tests spielen acht Fragen mit Moderation, Beamer und zwei getrennten Handy-Kontexten und bearbeiten eigene Texte und Bilder im Backend. Eine GitHub-Actions-Vorlage unter `docs/github-actions-workflow.yml.example` führt die Tests unter Node 24 aus. Sie ist noch nicht aktiviert: Dem für den Upload verfügbaren GitHub-Zugang fehlt die `workflow`-Berechtigung.
 
 ## Daten löschen
 
@@ -115,7 +138,7 @@ Nur Spitznamen verwenden. Nach dem Anlass den Server beenden und **alle Räume, 
 npm run db:reset -- --confirm
 ```
 
-Ohne `--confirm` verweigert das Skript das Löschen. Browserdaten bei Bedarf separat löschen. Der MVP hat keine automatische Löschfrist, keinen CSV-Export und keine Einzelpersonen-Löschoberfläche. Näheres unter `/sources.html`.
+Ohne `--confirm` verweigert das Skript das Löschen. **Eigene Fragen und Uploads bleiben erhalten.** Browserdaten bei Bedarf separat löschen. Der MVP hat keine automatische Löschfrist, keinen CSV-Export und keine Einzelpersonen-Löschoberfläche. Näheres unter `/sources.html`.
 
 ## Dateien und Rechte
 

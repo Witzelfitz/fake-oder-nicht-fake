@@ -3,11 +3,14 @@ import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { createQuizServer } from '../server/app.js';
 import { projectRoot } from '../server/content.js';
+import { io } from 'socket.io-client';
+import { once } from 'node:events';
 
 const server = createQuizServer({ dbPath: ':memory:', hostKey: 'documentation-only' });
 await server.listen(0, '127.0.0.1');
 const base = `http://127.0.0.1:${server.http.address().port}`;
 let browser;
+let hostSocket;
 try {
   browser = await chromium.launch({ channel: process.env.PW_CHANNEL || undefined });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1080 }, deviceScaleFactor: 1 });
@@ -18,5 +21,26 @@ try {
   await page.screenshot({ path: path.join(projectRoot, 'docs', 'start-desktop.png'), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: path.join(projectRoot, 'docs', 'start-mobile.png'), fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1080 });
+  await page.goto(`${base}/admin`, { waitUntil: 'networkidle' });
+  await page.getByLabel('Moderationsschlüssel').fill('documentation-only');
+  await page.getByRole('button', { name: 'Anmelden', exact: true }).click();
+  await page.locator('.question-select').first().click();
+  await page.waitForFunction(() => document.querySelector('#image-preview')?.naturalWidth > 0);
+  await page.screenshot({ path: path.join(projectRoot, 'docs', 'admin-desktop.png'), fullPage: true });
+  const room = await (await fetch(`${base}/api/rooms`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hostKey: 'documentation-only', duration: 25 }) })).json();
+  hostSocket = io(base, { transports: ['websocket'] }); await once(hostSocket, 'connect');
+  const emit = (event, payload) => new Promise(resolve => hostSocket.emit(event, payload, resolve));
+  await emit('watch', { room: room.room, hostToken: room.hostToken });
+  await page.goto(`${base}/?code=${room.room}`);
+  await page.getByLabel('Dein Spitzname').fill('Bergfuchs');
+  await page.waitForFunction(() => document.querySelector('#connection')?.classList.contains('connected'));
+  await page.getByRole('button', { name: 'Ich rate mit', exact: true }).click();
+  await page.getByRole('heading', { name: 'Dein Platz ist reserviert.', exact: true }).waitFor();
+  await emit('host:action', { action: 'start' });
+  await page.waitForFunction(() => document.querySelector('.image-example img')?.naturalWidth > 0);
+  await page.screenshot({ path: path.join(projectRoot, 'docs', 'quiz-desktop.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: path.join(projectRoot, 'docs', 'quiz-mobile.png'), fullPage: true });
   console.log('PDF und Vorschaubilder unter docs/ erzeugt.');
-} finally { await browser?.close(); await server.close(); }
+} finally { hostSocket?.disconnect(); await browser?.close(); await server.close(); }

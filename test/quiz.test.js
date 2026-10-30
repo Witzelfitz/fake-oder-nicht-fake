@@ -82,7 +82,7 @@ test('Lösungen und Punkte bleiben bis zur Auflösung geheim, Antworten zählen 
   assert.equal(rejoined.state.me.score, null); assert.deepEqual(rejoined.state.me.answer, { choice: 'ai' });
   assert.equal((await send(host, 'host:action', { action: 'reveal' })).ok, true);
   const after = await f.snapshot(room);
-  assert.equal(after.reveal.answer, 'ai'); assert.equal(after.leaderboard[0].score, 1000);
+  assert.equal(after.reveal.answer, 'ai'); assert.ok(after.leaderboard[0].score >= 1000 && after.leaderboard[0].score <= 1500);
   assert.equal(after.leaderboard[1].score, 0); assert.equal(after.answeredCount, 2);
   assert.equal((await send(one.socket, 'answer', { questionId: 'test-1', choice: 'ai' })).ok, false);
 });
@@ -127,22 +127,29 @@ test('Frist wird serverseitig erzwungen und eine laufende Frage automatisch aufg
   assert.equal((await send(player.socket, 'answer', { questionId: 'test-1', choice: 'ai' })).ok, false);
 });
 
-test('Stand-Rangliste vergleicht vollständige Runden; gleiche Punkte teilen sich einen Rang', async t => {
+test('Stand-Rangliste vergleicht vollständige Runden und trennt Antwortzeiten; Tempo entscheidet mit', async t => {
   const f = await fixture(t); const room = await f.room(); const host = await f.host(room);
   const p1 = await f.join(room, 'Alpha'); const p2 = await f.join(room, 'Beta'); await f.join(room, 'Ohne Antworten');
   await send(host, 'host:action', { action: 'start' });
   for (const q of deck.questions) {
-    for (const player of [p1, p2]) await send(player.socket, 'answer', { questionId: q.id, choice: q.answer });
+    for (const [player, elapsed] of [[p1, 3000], [p2, 9000]]) {
+      f.server.db.prepare('UPDATE rooms SET started_at = ?, deadline = ? WHERE id = ?').run(Date.now() - elapsed, Date.now() - elapsed + 15000, room.room);
+      await send(player.socket, 'answer', { questionId: q.id, choice: q.answer });
+    }
     await send(host, 'host:action', { action: 'reveal' });
     await send(host, 'host:action', { action: 'next' });
   }
   const state = await f.snapshot(room); assert.equal(state.phase, 'finished');
   assert.equal(state.globalLeaderboard.length, 2);
-  assert.deepEqual(state.globalLeaderboard.map(p => p.rank), [1, 1]);
-  assert.deepEqual(state.globalLeaderboard.map(p => p.score), [2000, 2000]);
+  assert.deepEqual(state.globalLeaderboard.map(p => p.rank), [1, 2]);
+  assert.equal(state.globalLeaderboard[0].id, p1.playerId);
+  assert.ok(state.globalLeaderboard[0].score > state.globalLeaderboard[1].score);
+  assert.equal(state.globalLeaderboard[0].bestStreak, 2);
+  assert.equal(state.globalLeaderboard[0].streakBonus, 100);
   const other = await f.room(); const otherHost = await f.host(other); await f.join(other, 'Neue Gruppe');
   assert.equal((await f.snapshot(other)).phase, 'lobby');
-  assert.equal((await (await fetch(`${f.base}/api/leaderboard`)).json()).entries.length, 2);
+  assert.equal((await (await fetch(`${f.base}/api/leaderboard?duration=15`)).json()).entries.length, 2);
+  assert.equal((await (await fetch(`${f.base}/api/leaderboard?duration=25`)).json()).entries.length, 0);
   assert.equal((await send(otherHost, 'host:action', { action: 'next' })).ok, false);
 });
 
@@ -156,10 +163,24 @@ test('SQLite überlebt Neustarts inklusive Raum, Moderationszugang und Antwort',
   const dbPath = path.join(folder, 'quiz.sqlite');
   first = await fixture(t, { dbPath }); const room = await first.room(); const host = await first.host(room); const player = await first.join(room);
   await send(host, 'host:action', { action: 'start' }); await send(player.socket, 'answer', { questionId: 'test-1', choice: 'ai' });
+  const persistedPoints = first.server.db.prepare('SELECT points FROM answers WHERE player_id = ?').get(player.playerId).points;
   await first.stop();
   second = await fixture(t, { dbPath }); const restoredHost = await second.host(room);
   const s = await second.connect(); const restored = await send(s, 'join', { room: room.room, playerId: player.playerId, playerToken: player.playerToken });
   assert.equal(restored.ok, true); assert.equal(restored.state.me.answer.choice, 'ai');
   await send(restoredHost, 'host:action', { action: 'reveal' });
-  assert.equal((await second.snapshot(room)).leaderboard[0].score, 1000);
+  assert.equal((await second.snapshot(room)).leaderboard[0].score, persistedPoints);
+});
+
+test('eine ausgelassene Frage unterbricht die Trefferfolge', async t => {
+  const extended = { ...deck, questions: [...deck.questions, { ...deck.questions[0], id: 'test-3' }] };
+  const f = await fixture(t, { deck: extended }); const room = await f.room(); const host = await f.host(room); const p = await f.join(room);
+  await send(host, 'host:action', { action: 'start' });
+  await send(p.socket, 'answer', { questionId: 'test-1', choice: 'ai' });
+  await send(host, 'host:action', { action: 'reveal' }); await send(host, 'host:action', { action: 'next' });
+  await send(host, 'host:action', { action: 'reveal' }); await send(host, 'host:action', { action: 'next' });
+  await send(p.socket, 'answer', { questionId: 'test-3', choice: 'ai' });
+  await send(host, 'host:action', { action: 'reveal' });
+  const stored = f.server.db.prepare("SELECT streak, streak_bonus FROM answers WHERE player_id = ? AND question_id = 'test-3'").get(p.playerId);
+  assert.equal(stored.streak, 1); assert.equal(stored.streak_bonus, 0);
 });

@@ -44,14 +44,15 @@ test('Moderation, Beamer und zwei Handys spielen acht Runden inklusive Reload un
       if (index === 0) {
         await player.reload();
         await expect(player.locator('.answer-button.selected')).toBeDisabled();
-        await expect(player.getByText('DEINE ANTWORT IST GESPEICHERT')).toBeVisible();
+      await expect(player.getByText('Deine Antwort ist gespeichert', { exact: true })).toBeVisible();
       }
       await host.getByRole('button', { name: /Jetzt auflösen/ }).click();
-      await expect(player.getByText('+ 1’000 Punkte ✓')).toBeVisible();
+      await expect(player.locator('.result-pill')).toHaveText(/\+ [\d'’]+ Punkte/);
+      await expect(player.locator('.score-breakdown')).toContainText('Tempo');
       await expect(screen.locator('.reveal-block')).toBeVisible();
       await host.getByRole('button', { name: /Nächste Frage|Ergebnis zeigen/ }).click();
     }
-    await expect(player.getByText(/8 von 8 erkannt\. 8['’]000 Punkte\. Rang 1\./)).toBeVisible();
+    await expect(player.locator('.personal-result')).toHaveText(/8 von 8 erkannt\. [\d'’]+ Punkte\. Rang 1\./);
     await expect(player.locator('.my-row').first()).toContainText('Bergfuchs');
     await expect(screen.locator('.overall')).toContainText('Seestern');
     for (const page of [host, player, second, screen]) {
