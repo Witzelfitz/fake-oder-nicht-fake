@@ -142,6 +142,8 @@ Optional `.env.example` nach `.env` kopieren. `.env`, Datenbanken, Protokolle un
 
 Öffentliches Hosting: ein Node-Prozess mit beschreibbarem dauerhaftem Datenträger, HTTPS und Reverse Proxy mit WebSocket-Unterstützung. Bei Docker Port 3000 veröffentlichen und `data/` als Volume einbinden. Dieser MVP unterstützt **eine Serverinstanz**; SQLite und Raum-Timer sind nicht für horizontale Replikation ausgelegt. Auf rein statischem Hosting oder GitHub Pages laufen weder Socket.IO noch SQLite. Ein GitHub-Upload ist noch kein Live-Deployment.
 
+Für Coolify: [Einrichtung, persistente Daten und erster Start](docs/COOLIFY.md). Das Dockerfile enthält einen Healthcheck mit Node.js, ohne zusätzliche curl-/wget-Abhängigkeit.
+
 ```sh
 docker build -t fake-quiz .
 docker run --rm -p 3000:3000 --env-file .env -v fake-quiz-data:/app/data fake-quiz
