@@ -101,10 +101,28 @@ function renderLobby() {
   return `<section class="lobby"><h1>${isPlayer ? `Hallo, ${escape(state.me?.nickname)}.` : 'Mitmachen'}</h1>${isPlayer ? '<h2>Dein Platz ist reserviert.</h2><p>Die Moderation startet gleich.</p>' : `<div class="qr-block"><img class="qr" src="/api/qr?url=${encodeURIComponent(state.joinUrl)}" alt="QR-Code zum Beitreten"><div><p>Spielcode</p><span class="game-code">${code}</span><p class="join-url">${escape(state.joinUrl)}</p></div></div>`}
     <p>${state.total} Fragen · ${state.duration} Sekunden pro Frage</p><p class="field-help">${rules()}</p><h2>Schon dabei (${state.playerCount})</h2><div class="player-chips">${state.players.map(p => `<span>${escape(p.nickname)}</span>`).join('') || '<p>Noch niemand beigetreten.</p>'}</div></section>`;
 }
+const originLabel = answer => answer === 'ai' ? 'Mit KI erzeugt' : 'Ohne generative KI';
+// Auflösung in Etappen: Gruppenvotum → Antwort → Erklärung → Merksatz → Punkte. Zeitpunkte stehen in style.css (.at-*),
+// weil die Content-Security-Policy keine style-Attribute erlaubt.
+const stage = step => `stage at-${step}`;
+function originStamp() {
+  if (state.phase !== 'reveal' || !state.reveal) return '';
+  return `<span class="origin-stamp at-answer ${state.reveal.answer}" aria-hidden="true">${originLabel(state.reveal.answer)}</span>`;
+}
 function questionMedia() {
   const q = state.question;
-  if (q.type === 'text') return `<div class="text-example"><p>${escape(q.text)}</p></div>`;
-  return `<div class="image-example ${q.type === 'poster' ? 'poster-example' : ''}"><img src="${q.image}" alt="${escape(q.alt)}"><p class="image-error" hidden>Bild nicht geladen. Bitte Verbindung prüfen.</p></div>`;
+  if (q.type === 'text') return `<div class="text-example"><p>${escape(q.text)}</p>${originStamp()}</div>`;
+  return `<div class="image-example ${q.type === 'poster' ? 'poster-example' : ''}"><div class="media-frame"><img src="${q.image}" alt="${escape(q.alt)}">${originStamp()}</div><p class="image-error" hidden>Bild nicht geladen. Bitte Verbindung prüfen.</p></div>`;
+}
+function voteSplit(r) {
+  const count = choice => r.votes.find(v => v.choice === choice)?.n || 0;
+  const human = count('human'), ai = count('ai'), total = human + ai;
+  if (!total) return `<p class="vote-label ${stage("votes")}">Niemand aus der Gruppe hat abgestimmt.</p>`;
+  const share = n => Math.round(n / total * 100);
+  const segment = (choice, n) => n ? `<span class="vote-segment ${choice === r.answer ? 'is-correct' : 'is-wrong'}" data-share="${n / total * 100}"></span>` : '';
+  return `<div class="vote-split" role="img" aria-label="Gruppe: ${human} ohne generative KI, ${ai} mit KI erzeugt"><p class="vote-label">So hat die Gruppe getippt</p>
+    <div class="vote-bar">${segment('human', human)}${segment('ai', ai)}</div>
+    <div class="vote-legend"><span>Ohne generative KI · ${share(human)} %</span><span>${share(ai)} % · Mit KI erzeugt</span></div></div>`;
 }
 function choices() {
   if (state.phase !== 'question') return '';
@@ -115,22 +133,35 @@ function choices() {
 function revealBlock() {
   const r = state.reveal, a = state.me?.answer;
   if (!r || state.phase !== 'reveal') return '';
-  return `<section class="reveal-block"><h2>${r.answer === 'ai' ? 'Mit KI erzeugt.' : 'Ohne generative KI.'}</h2>${role === 'player' ? `<p class="result-pill">${a ? a.points ? `+ ${number(a.points)} Punkte` : 'Diesmal kein Treffer' : 'Nicht abgestimmt'}</p>${a ? `<p class="score-breakdown">${number(a.base)} Basis + ${a.speed} Tempo + ${a.series} Serie · Antwort nach ${seconds(a.elapsedMs)}${a.streak ? ` · ${a.streak} richtig in Folge` : ''}</p>` : ''}` : ''}<p>${escape(r.explanation)}</p><p class="takeaway">${escape(r.takeaway)}</p><p class="vote-summary">Gruppe: ${r.votes.find(v => v.choice === 'human')?.n || 0} ohne KI · ${r.votes.find(v => v.choice === 'ai')?.n || 0} mit KI</p><p class="source-credit">${escape(r.credit)} · ${escape(r.license)}<br><a href="${escape(r.source)}" target="_blank" rel="noopener noreferrer">Herkunft nachprüfen</a></p></section>`;
+  const player = role === 'player';
+  const verdict = player && a ? `<p class="verdict ${a.choice === r.answer ? 'hit' : 'miss'} ${stage("answer")}">${a.choice === r.answer ? 'Richtig getippt.' : 'Daneben getippt.'}</p>` : '';
+  const points = player ? `<div class="${stage("points")}"><p class="result-pill">${a ? a.points ? `+ ${number(a.points)} Punkte` : 'Diesmal kein Treffer' : 'Nicht abgestimmt'}</p>${a ? `<p class="score-breakdown">${number(a.base)} Basis + ${a.speed} Tempo + ${a.series} Serie · Antwort nach ${seconds(a.elapsedMs)}${a.streak ? ` · ${a.streak} richtig in Folge` : ''}</p>` : ''}</div>` : '';
+  return `<section class="reveal-block">${voteSplit(r)}<h2 class="reveal-answer ${stage("answer")}">${originLabel(r.answer)}.</h2>${verdict}<p class="${stage("explanation")}">${escape(r.explanation)}</p><p class="takeaway ${stage("takeaway")}">${escape(r.takeaway)}</p>${points}<p class="source-credit ${stage("points")}">${escape(r.credit)} · ${escape(r.license)}<br><a href="${escape(r.source)}" target="_blank" rel="noopener noreferrer">Herkunft nachprüfen</a></p></section>`;
 }
 function leaderboardTable(entries, meId) {
   if (!entries.length) return '<p class="empty-state">Noch keine vollständigen Ergebnisse.</p>';
   return `<table class="leaderboard-table"><caption class="sr-only">Rangliste nach Punkten</caption><thead><tr><th>Rang</th><th>Spitzname</th><th>Punkte</th></tr></thead><tbody>${entries.map(p => `<tr class="${p.id === meId ? 'my-row' : ''}"><td>${p.rank}${p.movement ? `<small class="movement">${p.movement > 0 ? '↑' : '↓'}${Math.abs(p.movement)}</small>` : ''}</td><th scope="row">${escape(p.nickname)}${p.id === meId ? ' (du)' : ''}<small>${p.correct}/${state?.total || p.answered} richtig · Ø ${seconds(p.avgMs)} · Serie ${p.bestStreak}</small></th><td>${number(p.score)}</td></tr>`).join('')}</tbody></table>`;
 }
 function renderQuestion() {
-  return `<section class="quiz-section"><div class="question-top"><div><p class="eyebrow">Frage ${state.index + 1} / ${state.total} · ${typeLabel(state.question.type)}</p><h1>${escape(state.question.title)}</h1></div>${state.phase === 'question' ? '<div class="timer" role="timer" aria-label="Verbleibende Antwortzeit"><span id="seconds">–</span><small>Sek.</small></div>' : '<span class="phase-pill">Auflösung</span>'}</div><div class="progress-track"><div id="progress-fill"></div></div>${questionMedia()}${choices()}${revealBlock()}${state.phase === 'reveal' ? `<section class="round-ranking"><h2>Zwischenstand</h2>${leaderboardTable(state.leaderboard, state.me?.id)}</section>` : ''}</section>`;
+  return `<section class="quiz-section ${state.phase === 'reveal' ? 'is-reveal' : ''}"><div class="question-top"><div><p class="eyebrow">Frage ${state.index + 1} / ${state.total} · ${typeLabel(state.question.type)}</p><h1>${escape(state.question.title)}</h1></div>${state.phase === 'question' ? '<div class="timer" role="timer" aria-label="Verbleibende Antwortzeit"><span id="seconds">–</span><small>Sek.</small></div>' : '<span class="phase-pill">Auflösung</span>'}</div><div class="progress-track"><div id="progress-fill"></div></div>${questionMedia()}${choices()}${revealBlock()}${state.phase === 'reveal' ? `<section class="round-ranking ${stage("ranking")}"><h2>Zwischenstand</h2>${leaderboardTable(state.leaderboard, state.me?.id)}</section>` : ''}</section>`;
 }
 function renderFinished() {
   const me = state.leaderboard.find(p => p.id === state.me?.id);
   return `<section class="results"><h1>Ergebnis</h1>${me ? `<p class="personal-result">${me.correct} von ${state.total} erkannt. ${number(me.score)} Punkte. Rang ${me.rank}.</p>` : ''}<h2>Diese Gruppe</h2>${leaderboardTable(state.leaderboard, state.me?.id)}<section class="overall"><h2>Stand-Rangliste</h2><p class="field-help">Dasselbe Fragenset und ${state.duration} Sekunden Antwortzeit pro Frage.</p>${leaderboardTable(state.globalLeaderboard, state.me?.id)}</section><p class="field-help">Reihenfolge: Punkte, Treffer, dann durchschnittliche Zeit richtiger Antworten. «Serie» zeigt die längste Trefferfolge. Gleiche Werte teilen sich den Rang.</p></section>`;
 }
+// Jede Stimme oder Wiederverbindung rendert neu. Damit die Etappen nicht von vorne beginnen,
+// laufen die Animationen ab dem Beginn der Phase weiter (--elapsed verschiebt animation-delay).
+let phaseKey, phaseStart;
+function syncPhaseClock() {
+  const key = `${state.room}:${state.phase}:${state.index}`;
+  if (key !== phaseKey) { phaseKey = key; phaseStart = performance.now(); }
+  app.style.setProperty('--elapsed', `${((performance.now() - phaseStart) / 1000).toFixed(3)}s`);
+}
 function renderState() {
   document.body.classList.toggle('screen-mode', role === 'screen');
+  syncPhaseClock();
   app.innerHTML = hostToolbar() + (state.phase === 'lobby' ? renderLobby() : state.phase === 'finished' ? renderFinished() : renderQuestion());
+  document.querySelectorAll('[data-share]').forEach(el => el.style.setProperty('--share', `${el.dataset.share}%`));
   document.querySelectorAll('.image-example img').forEach(img => img.addEventListener('error', () => { img.hidden = true; img.nextElementSibling.hidden = false; }));
   $('#host-action')?.addEventListener('click', async event => {
     if (requestPending) return;
