@@ -1,0 +1,98 @@
+<!doctype html><html lang="de-CH"><head><meta charset="utf-8"><meta name="author" content="Benjamin Hanimann"><title>Lösungsheft · nur Moderation · Der zweite Blick</title><style>@font-face{font-family:'Publication Sans';font-weight:400;src:url(../assets/ae7b7855e115a5966d8b.ttf)}@font-face{font-family:'Publication Sans';font-weight:600 900;src:url(../assets/5c1247acef7f2b8522a3.ttf)}@font-face{font-family:'Publication Mono';font-weight:400;src:url(../assets/c805f9436dbc268644c1.ttf)}@page { size: A4; margin: 16mm; }
+* { box-sizing: border-box; }
+html { color: #14202B; background: white; font-family: 'Publication Sans',sans-serif; font-size: 11pt; line-height: 1.42; }
+body { margin: 0; }
+h1,h2,h3,p { margin: 0 0 4mm; }
+h1 { font-size: 34pt; line-height: 1.08; letter-spacing: -.035em; }
+h2 { font-size: 20pt; line-height: 1.18; margin-top: 7mm; }
+h3 { font-size: 13pt; line-height: 1.3; }
+a { color: #2755E7; text-decoration: none; overflow-wrap: anywhere; }
+.sheet { break-after: page; }
+.sheet:last-child { break-after: auto; }
+.brand { font-weight: bold; font-size: 10pt; margin-bottom: 3mm; }
+.kicker { color: #2755E7; font-family: 'Publication Mono',monospace; font-size: 9pt; margin-bottom: 6mm; }
+.case-id { display: inline-block; background: #D8FA52; color: #14202B; padding: 2mm 3mm; font-size: 9pt; margin-bottom: 5mm; }
+.lead { background: #F6F2E9; padding: 5mm; margin: 5mm 0; }
+.flow { background: #2755E7; color: white; padding: 5mm; display: flex; justify-content: space-between; gap: 4mm; font-weight: bold; }
+.image-wrap { text-align: center; margin: 5mm 0; }
+.case-image { max-width: 128mm; max-height: 75mm; width: auto; height: auto; object-fit: contain; }
+.solution .case-image { max-height: 32mm; max-width: 95mm; }
+.material-text { background: #F6F2E9; padding: 5mm; white-space: pre-line; font-size: 12pt; line-height: 1.5; }
+.simulation { color: #14202B; border-left: 3mm solid #D8FA52; padding-left: 3mm; font-size: 9pt; margin: 3mm 0; }
+.credit { font-size: 9pt; line-height: 1.35; margin: 3mm 0 5mm; overflow-wrap: anywhere; }
+.prompt { font-size: 15pt; line-height: 1.35; font-weight: bold; padding: 4mm 0; }
+.options { display: flex; flex-wrap: wrap; gap: 5mm; font-size: 10pt; margin: 4mm 0; }
+.writing { min-height: 35mm; margin: 3mm 0 5mm; }
+.writing-line { height: 8mm; border-bottom: .25mm solid #D6D9D7; }
+.writing-task { break-inside: avoid; }
+.writing.small { min-height: 30mm; }
+.source { border-left: 1mm solid #2755E7; padding-left: 4mm; margin: 5mm 0; break-inside: avoid; }
+.source p { font-size: 10.5pt; margin-bottom: 2.5mm; }
+.source .source-meta,.source .source-link,.source .rights { font-size: 9pt; }
+.callout { padding: 4mm; background: #F6F2E9; border-left: 2mm solid #2755E7; margin: 5mm 0; break-inside: avoid; }
+.step { display: grid; grid-template-columns: 11mm 1fr; gap: 4mm; margin: 5mm 0; break-inside: avoid; }
+.step-number { color: #2755E7; font-family: 'Publication Mono',monospace; font-size: 18pt; }
+.step p { margin: 0; }
+table { width: 100%; border-collapse: collapse; margin: 5mm 0; font-size: 10.5pt; }
+th,td { border-bottom: .3mm solid #D6D9D7; padding: 3mm 2mm; text-align: left; vertical-align: top; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+ul,ol { padding-left: 6mm; }
+li { margin-bottom: 3mm; }
+.checklist { list-style: none; padding-left: 0; }
+.checklist li::before { content: '□ '; color: #2755E7; }
+.poster h1 { font-size: 48pt; }
+.poster .case-image { max-width: 140mm; max-height: 65mm; }
+.poster .step { margin: 4mm 0; }
+.poster .qr { display: block; width: 42mm; height: 42mm; margin: 3mm auto; }
+.poster .join-label { text-align: center; padding: 3mm; background: #D8FA52; font-size: 12pt; font-weight: bold; }
+.poster .join-url { font-family: 'Publication Mono',monospace; font-size: 9pt; overflow-wrap: anywhere; text-align: center; }
+.poster-a3 h1 { font-size: 72pt; }
+.poster-a3 p { font-size: 16pt; }
+.poster-a3 .case-image { max-width: 140mm; max-height: 90mm; }
+.poster-a3 .credit { font-size: 10pt; }
+.poster-a3 .step-number { font-size: 26pt; }
+.poster-a3 .step { margin: 8mm 0; }
+.poster-a3 .qr { width: 65mm; height: 65mm; }
+.poster-join { display: grid; grid-template-columns: 45mm 1fr; gap: 5mm; align-items: center; margin-top: 4mm; break-inside: avoid; }
+.poster-join .qr { margin: 0; }
+.poster-join .join-label { text-align: left; }
+.poster-join .join-url { text-align: left; margin: 3mm 0; }
+.poster.has-qr h1 { font-size: 44pt; }
+.poster.has-qr .case-image { max-height: 45mm; }
+.poster.has-qr .step { margin: 3mm 0; }
+.poster-a3.has-qr h1 { font-size: 72pt; }
+.poster-a3.has-qr .case-image { max-height: 90mm; }
+.poster-a3 .poster-join { grid-template-columns: 70mm 1fr; }
+.card h1 { font-size: 21pt; }
+.card .kicker { font-size: 9pt; margin-bottom: 3mm; }
+.card .step { grid-template-columns: 7mm 1fr; gap: 2mm; margin: 3mm 0; }
+.card .step-number { font-size: 12pt; }
+.card p { font-size: 10.5pt; line-height: 1.3; }
+.card .callout { padding: 3mm; margin: 3mm 0; }
+.source-register { font-size: 10.5pt; }
+.source-register article { margin: 5mm 0; break-inside: avoid; }
+.source-register p { margin: 0 0 2mm; }
+.source-register article { break-inside: avoid; }
+h1,h2,h3 { break-after: avoid; }
+.guide-case { padding: 3mm; margin: 3mm 0; }
+.guide-case h3 { margin: 0 0 2mm; font-size: 12pt; }
+.guide-case p { font-size: 10.5pt; margin-bottom: 2mm; }
+.solution h2 { margin-top: 4mm; font-size: 18pt; }
+.solution .source { margin: 3mm 0; }
+.solution .source h3 { font-size: 12pt; margin-bottom: 2mm; }
+.solution .callout { margin: 3mm 0; padding: 3mm; }
+.solution .credit { margin: 2mm 0 3mm; }
+.workshop .case-image { max-height: 24mm; }
+.workshop .material-text { font-size: 10.5pt; padding: 3mm; }
+.workshop .prompt { font-size: 12pt; padding: 2mm 0; }
+.workshop .credit { margin: 2mm 0 3mm; }
+.workshop .writing { margin: 2mm 0 3mm; }
+.workshop h3 { font-size: 11pt; margin-bottom: 2mm; }
+.workshop .writing-line { height: 7.5mm; }
+.workshop .kicker { margin-bottom: 3mm; }
+.workshop .brand { margin-bottom: 2mm; }
+.workshop .writing { margin-top: 1mm; }
+@media screen { body { max-width: 178mm; margin: 15mm auto; padding: 0 5mm; } .sheet { border-bottom: 1px solid #D6D9D7; margin-bottom: 15mm; padding-bottom: 10mm; } }
+@media print { .no-print { display:none!important; } }
+</style></head><body data-publication-ready="true" data-snapshot="f219218392ef23cf5e59" data-audience="facilitator"><section class="sheet solution"><p class="brand">WITZELFITZ. / DER ZWEITE BLICK</p><p class="kicker">Lösungsheft · nur Moderation · blick-panorama / REV 1 · f219218392ef23cf5e59</p><h1>Ein Ausblick zum Staunen.</h1><div class="image-wrap"><img class="case-image" src="../assets/5aa4bb3f5c51bc2f13ad.jpg" alt="Panorama mit Bergen und See vom Fronalpstock."></div><p class="credit">Hannes Röst · Fronalpstock · 2010 · verkleinerte Commons-Vorschau, Motiv unverändert · CC BY-SA 3.0 · <a href="https://creativecommons.org/licenses/by-sa/3.0/">https://creativecommons.org/licenses/by-sa/3.0/</a> · <a href="https://commons.wikimedia.org/wiki/File:Fronalpstock_big.jpg">Original & Rechte</a></p><h2>Ohne generative KI</h2><p>Dieses Panorama vom Fronalpstock wurde von Hannes Röst fotografiert und 2010 veröffentlicht. Es besteht aus zwölf zusammengefügten Aufnahmen. Das ist digitale Bildbearbeitung, aber keine generative KI.</p><article class="source compact-source"><h3>Fronalpstock: Beschreibung und Dateihistorie</h3><p class="source-meta">Wikimedia Commons / Hannes Röst · geprüft 2026-10-30</p><p><strong>Beschreibung, Lizenz und Dateihistorie:</strong> Die Dateiseite dokumentiert ein Panorama aus zwölf Fotografien und die Veröffentlichung am 26. August 2010.</p><p><strong>Grenze:</strong> Veröffentlichungsdatum und Aufnahmezeitpunkt sind verschiedene Angaben.</p><p class="source-link"><a href="https://commons.wikimedia.org/wiki/File:Fronalpstock_big.jpg">Originalquelle</a> · <a href="quellenregister.html">vollständige Quellen- und Rechteakte</a></p></article><div class="callout"><strong>Grenze und Transfer</strong><p>Am Bild allein ist die Herkunft nicht sicher erkennbar; die Auflösung stützt sich auf die Quellenakte. Welche Originalquelle würdest du beim nächsten Ferienfoto suchen?</p></div><p><strong>Merksatz:</strong> Ein bearbeitetes Foto ist nicht automatisch KI-generiert. Frage nach Aufnahme, Bearbeitung und Herkunft.</p></section><section class="sheet solution"><p class="brand">WITZELFITZ. / DER ZWEITE BLICK</p><p class="kicker">Lösungsheft · nur Moderation · blick-einladung / REV 1 · f219218392ef23cf5e59</p><h1>Klingt nach einem guten Plan.</h1><p class="simulation">Unterrichtssimulation · fiktives Beispiel</p><p class="material-text">Am Samstag wird unser Dorfplatz zur Ideenwerkstatt. Bring ein altes Gerät, eine neugierige Frage oder einfach Zeit mit. Gemeinsam reparieren, tüfteln und entdecken wir, wie viel Zukunft schon in unserem Alltag steckt.</p><p class="credit">KI-Text · eigens für den Digimärt erstellt · fiktive Veranstaltung · Quiz-Eigeninhalt; siehe content/provenance.json</p><h2>Mit generativer KI</h2><p>Diese Einladung wurde für das Quiz mit einem Sprachmodell geschrieben. Sie klingt nach einer gewöhnlichen Veranstaltungsankündigung, beschreibt aber keinen belegten realen Anlass.</p><article class="source compact-source"><h3>Herstellungsprotokoll dieses Quiz</h3><p class="source-meta">Projektakte «Fake oder nicht fake?» · geprüft 2026-10-30</p><p><strong>content/provenance.json / q02:</strong> Die Einladung wurde vom Sprachmodell für dieses Quiz formuliert. Der Anlass ist erfunden.</p><p><strong>Grenze:</strong> Ein Projektprotokoll dokumentiert die Erstellung; es ist kein unabhängiger Wahrheitsbeleg.</p><p class="source-link"><a href="quellenregister.html">vollständige Quellen- und Rechteakte</a></p></article><div class="callout"><strong>Grenze und Transfer</strong><p>Aus dem Stil allein lässt sich weder die Herkunft noch ein realer Anlass belegen. Welche Veranstaltungsangabe würdest du vor dem Weiterleiten prüfen?</p></div><p><strong>Merksatz:</strong> Ein natürlicher Schreibstil beweist keine menschliche Urheberschaft. Prüfe bei Einladungen Datum, Veranstalter und Originalveröffentlichung.</p></section><section class="sheet solution"><p class="brand">WITZELFITZ. / DER ZWEITE BLICK</p><p class="kicker">Lösungsheft · nur Moderation · blick-werbung / REV 1 · f219218392ef23cf5e59</p><h1>Ferien fürs Auge.</h1><p class="simulation">Unterrichtssimulation · fiktives Beispiel</p><div class="image-wrap"><img class="case-image" src="../assets/582577729ec9946c7a9d.png" alt="Fallmaterial zur gemeinsamen Prüfung"></div><p class="credit">KI-Bild · integrierter Bildgenerator · 30.10.2026 · fiktives Reiseplakat · Quiz-Eigeninhalt; siehe content/provenance.json</p><h2>Mit generativer KI</h2><p>Dieses Reiseplakat wurde für das Quiz mit dem integrierten Bildgenerator erstellt – inklusive Schrift, Berglandschaft und Drucktextur. Es ist keine historische Tourismuswerbung.</p><article class="source compact-source"><h3>Herstellungsprotokoll dieses Quiz</h3><p class="source-meta">Projektakte «Fake oder nicht fake?» · geprüft 2026-10-30</p><p><strong>content/provenance.json / assets/alpine-poster.png:</strong> Das Plakat wurde am 30. Oktober 2026 mit dem integrierten Bildgenerator erstellt. Der Prompt ist dokumentiert.</p><p><strong>Grenze:</strong> Ein Projektprotokoll dokumentiert die Erstellung; es ist kein unabhängiger Wahrheitsbeleg.</p><p class="source-link"><a href="quellenregister.html">vollständige Quellen- und Rechteakte</a></p></article><div class="callout"><strong>Grenze und Transfer</strong><p>Saubere Schrift und ein professioneller Look entscheiden nicht über die Herkunft. Wo würdest du eine behauptete Werbekampagne gegenprüfen?</p></div><p><strong>Merksatz:</strong> Generative KI kann auch gut lesbare Schrift und überzeugende Werbung erzeugen. Ein professioneller Look ist kein Herkunftsnachweis.</p></section><section class="sheet solution"><p class="brand">WITZELFITZ. / DER ZWEITE BLICK</p><p class="kicker">Lösungsheft · nur Moderation · blick-datum / REV 1 · f219218392ef23cf5e59</p><h1>Echtes Bild. Richtiges Datum?</h1><p class="simulation">Unterrichtssimulation · fiktives Beispiel</p><div class="image-wrap"><img class="case-image" src="../assets/5aa4bb3f5c51bc2f13ad.jpg" alt="Fallmaterial zur gemeinsamen Prüfung"></div><p>Fiktiver Post: «Erstveröffentlichung 2026»</p><p class="credit">Hannes Röst · Fronalpstock · 2010 · verkleinerte Commons-Vorschau, Motiv unverändert · CC BY-SA 3.0 · <a href="https://creativecommons.org/licenses/by-sa/3.0/">https://creativecommons.org/licenses/by-sa/3.0/</a> · <a href="https://commons.wikimedia.org/wiki/File:Fronalpstock_big.jpg">Original & Rechte</a></p><h2>Widerlegt</h2><p>Die konkrete Datumsbehauptung ist widerlegt: Diese Bilddatei war bereits am 26. August 2010 auf Wikimedia Commons veröffentlicht. Ein heute geteilter Post macht das Foto nicht neu.</p><article class="source compact-source"><h3>Fronalpstock: Beschreibung und Dateihistorie</h3><p class="source-meta">Wikimedia Commons / Hannes Röst · geprüft 2026-10-30</p><p><strong>Beschreibung, Lizenz und Dateihistorie:</strong> Die Dateiseite dokumentiert ein Panorama aus zwölf Fotografien und die Veröffentlichung am 26. August 2010.</p><p><strong>Grenze:</strong> Veröffentlichungsdatum und Aufnahmezeitpunkt sind verschiedene Angaben.</p><p class="source-link"><a href="https://commons.wikimedia.org/wiki/File:Fronalpstock_big.jpg">Originalquelle</a> · <a href="quellenregister.html">vollständige Quellen- und Rechteakte</a></p></article><div class="callout"><strong>Grenze und Transfer</strong><p>Die Dateihistorie widerlegt die behauptete Erstveröffentlichung. Sie belegt nicht automatisch den genauen Aufnahmezeitpunkt. Wie unterscheidest du «heute geteilt» und «heute entstanden»?</p></div><p><strong>Merksatz:</strong> Prüfe das früheste belegte Veröffentlichungsdatum.</p></section><section class="sheet solution"><p class="brand">WITZELFITZ. / DER ZWEITE BLICK</p><p class="kicker">Lösungsheft · nur Moderation · blick-archiv / REV 1 · f219218392ef23cf5e59</p><h1>Ein Klassiker – oder eine Kopie?</h1><div class="image-wrap"><img class="case-image" src="../assets/448096d946fffdad4289.jpg" alt="Fallmaterial zur gemeinsamen Prüfung"></div><p class="credit">Emil Cardinaux · Zermatt · 1908 · Scan: Plakatsammlung SfG Basel · verkleinerte Vorschau · Public Domain Mark 1.0 · <a href="https://creativecommons.org/publicdomain/mark/1.0/">https://creativecommons.org/publicdomain/mark/1.0/</a> · <a href="https://commons.wikimedia.org/wiki/File:CH-000957-X-3396_Cardinaux.jpg">Original & Rechte</a></p><h2>Ohne generative KI</h2><p>Das Zermatt-Plakat gestaltete Emil Cardinaux 1908. Die Vorlage ist eine Lithografie; gezeigt wird ein Scan aus der Plakatsammlung der Schule für Gestaltung Basel. Die ungewöhnlichen Farben stammen von einem Menschen.</p><article class="source compact-source"><h3>Zermatt, Matterhorn 4505m Schweiz</h3><p class="source-meta">Emil Cardinaux / Plakatsammlung SfG Basel · geprüft 2026-10-30</p><p><strong>Werkbeschreibung und Datierung:</strong> Die Katalogangaben nennen Emil Cardinaux, 1908 und Lithografie.</p><p><strong>Grenze:</strong> Die Quelle belegt das historische Werk, nicht die Herkunft jeder heutigen digitalen Kopie.</p><p class="source-link"><a href="https://commons.wikimedia.org/wiki/File:CH-000957-X-3396_Cardinaux.jpg">Originalquelle</a> · <a href="quellenregister.html">vollständige Quellen- und Rechteakte</a></p></article><div class="callout"><strong>Grenze und Transfer</strong><p>Unrealistische Farben sind eine gestalterische Entscheidung, kein sicherer KI-Hinweis. Welches Archiv oder welchen Katalog würdest du öffnen?</p></div><p><strong>Merksatz:</strong> Stilisierte oder unrealistische Bilder sind nicht automatisch KI-generiert. Kunst und Werbung spielen schon lange mit der Wirklichkeit.</p></section><section class="sheet solution"><p class="brand">WITZELFITZ. / DER ZWEITE BLICK</p><p class="kicker">Lösungsheft · nur Moderation · blick-wolken / REV 1 · f219218392ef23cf5e59</p><h1>Gut erklärt. Stimmt der Inhalt?</h1><p class="material-text">Wolken bestehen aus winzigen Wassertröpfchen oder Eiskristallen. Sie entstehen, wenn feuchte Luft abkühlt und Wasserdampf kondensiert. Obwohl die einzelnen Tröpfchen sehr klein sind, können sie zusammen grosse Mengen Wasser enthalten.</p><p class="credit">KI-Text · eigens für dieses Quiz erstellt · sachlich zutreffendes Beispiel · Quiz-Eigeninhalt; siehe content/provenance.json</p><h2>Belegt</h2><p>MeteoSchweiz beschreibt diese Grundlagen auf Seite 9. Der Text ist sachlich gestützt und wurde zugleich mit KI formuliert. Das sind zwei getrennte Feststellungen.</p><article class="source compact-source"><h3>Typische Wetterlagen im Alpenraum</h3><p class="source-meta">MeteoSchweiz · geprüft 2026-10-30</p><p><strong>Seite 9, «Wie entstehen Wolken?»:</strong> Abkühlung feuchter Luft kann zur Kondensation führen. Wolken enthalten kleine Wassertröpfchen und/oder Eiskristalle.</p><p><strong>Grenze:</strong> Der Auszug stützt diese Grundlagen, erklärt aber nicht jeden Prozess der Wolkenbildung.</p><p class="source-link"><a href="https://www.meteoswiss.admin.ch/dam/jcr%3A26d0cf06-eb32-427f-abde-24e3c79b333e/Web_Wetterlagen_DE_low.pdf">Originalquelle</a> · <a href="quellenregister.html">vollständige Quellen- und Rechteakte</a></p></article><article class="source compact-source"><h3>Herstellungsprotokoll dieses Quiz</h3><p class="source-meta">Projektakte «Fake oder nicht fake?» · geprüft 2026-10-30</p><p><strong>content/provenance.json / q08:</strong> Der Text wurde für dieses Quiz von einem Sprachmodell formuliert.</p><p><strong>Grenze:</strong> Ein Projektprotokoll dokumentiert die Erstellung; es ist kein unabhängiger Wahrheitsbeleg.</p><p class="source-link"><a href="quellenregister.html">vollständige Quellen- und Rechteakte</a></p></article><div class="callout"><strong>Grenze und Transfer</strong><p>Die Sachquelle stützt den fachlichen Kern. Die KI-Herstellung ist eine getrennte Frage. Welche Quelle prüft den Inhalt, welche die Herstellung?</p></div><p><strong>Merksatz:</strong> KI-generiert bedeutet nicht automatisch falsch.</p></section></body></html>

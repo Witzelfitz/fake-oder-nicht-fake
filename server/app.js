@@ -1,14 +1,21 @@
 import express from 'express';
 import { createServer } from 'node:http';
 import { randomBytes, randomInt, createHash, timingSafeEqual } from 'node:crypto';
-import { networkInterfaces } from 'node:os';
+import { localAddresses } from './network.js';
 import path from 'node:path';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { Server } from 'socket.io';
 import QRCode from 'qrcode';
 import { openDatabase } from './database.js';
 import { loadDeck, publicQuestion, projectRoot, contentRoot, resolveAsset } from './content.js';
 import { questionBank, installQuestionAdmin } from './questions.js';
 import { SCORING_VERSION, DURATIONS, scoreAnswer, rankPlayers } from './scoring.js';
+import { MODES, validateCase } from './cases.js';
+import { isLearning, learningView, learningCommand, submitLearning } from './learning.js';
+import { curatedPack } from './imports.js';
+import { readSettings, purgeExpired } from './settings.js';
+import { installMaterials } from './materials.js';
 
 const hash = value => createHash('sha256').update(String(value ?? '')).digest('hex');
 const matches = (value, expected) => timingSafeEqual(Buffer.from(hash(value)), Buffer.from(expected));
@@ -20,7 +27,8 @@ const fail = message => { throw new Error(message); };
 export function createQuizServer(options = {}) {
   const db = openDatabase(options.dbPath ?? './data/quiz.sqlite');
   const bank = questionBank(db, options.deck ?? loadDeck());
-  const uploadRoot = path.resolve(options.uploadDir ?? path.join(path.dirname(path.resolve(options.dbPath && options.dbPath !== ':memory:' ? options.dbPath : './data/quiz.sqlite')), 'uploads'));
+  const temporaryUploads = options.dbPath === ':memory:' && !options.uploadDir ? mkdtempSync(path.join(tmpdir(),'fake-quiz-uploads-')) : null;
+  const uploadRoot = path.resolve(options.uploadDir ?? temporaryUploads ?? path.join(path.dirname(path.resolve(options.dbPath || './data/quiz.sqlite')), 'uploads'));
   const hostKey = options.hostKey || token().slice(0, 16);
   const hostHash = hash(hostKey);
   const publicUrl = options.publicUrl?.replace(/\/$/, '');
@@ -74,6 +82,7 @@ export function createQuizServer(options = {}) {
     return rankPlayers(complete, answers).slice(0, 20);
   }
   function view(room, identity = {}) {
+    if (isLearning(room)) return learningView(db, room, identity);
     const questions = roomDeck(room).questions;
     const q = questions[room.question_index];
     const players = getPlayers(room.id);
@@ -84,6 +93,7 @@ export function createQuizServer(options = {}) {
     return {
       room: room.id, phase: room.phase, index: room.question_index, total: questions.length,
       duration: room.duration, deadline: room.deadline, serverTime: Date.now(), scoringVersion: room.scoring_version,
+      mode: room.mode, revision: room.revision, phaseStartedAt: room.phase_started_at,
       joinUrl: `${room.join_base}/?code=${room.id}`,
       players: room.phase === 'lobby' ? players : [], playerCount: players.length, answeredCount,
       question: publicQuestion(q, room.id, room.question_index),
@@ -109,11 +119,20 @@ export function createQuizServer(options = {}) {
   }
   function reveal(id) {
     clearTimeout(timers.get(id)); timers.delete(id);
-    db.prepare("UPDATE rooms SET phase = 'reveal', deadline = NULL WHERE id = ? AND phase = 'question'").run(id);
+    db.prepare("UPDATE rooms SET phase = 'reveal', deadline = NULL,phase_started_at=? WHERE id = ? AND phase = 'question'").run(Date.now(), id);
     emitRoom(id);
   }
   function schedule(room) {
     clearTimeout(timers.get(room.id));
+    if (isLearning(room)) {
+      if (!['first_vote', 'final_vote'].includes(room.phase) || !room.deadline || room.voting_closed) return;
+      const closeVoting = () => {
+        db.prepare('UPDATE rooms SET voting_closed=1,deadline=NULL,revision=revision+1 WHERE id=? AND deadline IS NOT NULL').run(room.id);
+        emitRoom(room.id);
+      };
+      if (room.deadline <= Date.now()) { closeVoting(); return; }
+      const timer = setTimeout(closeVoting, room.deadline - Date.now()); timer.unref(); timers.set(room.id,timer); return;
+    }
     if (room.phase !== 'question') return;
     if (room.deadline <= Date.now()) { reveal(room.id); return; }
     const timer = setTimeout(() => reveal(room.id), room.deadline - Date.now());
@@ -121,7 +140,7 @@ export function createQuizServer(options = {}) {
   }
   const baseForRequest = req => publicUrl || `${req.protocol}://${req.get('host')}`;
 
-  installQuestionAdmin(app, { db, bank, uploadRoot, authenticate: (req, res, next) => {
+  const authenticate = (req,res,next) => {
     const key = req.get('authorization')?.replace(/^Bearer /, '') ?? '';
     if (!matches(key, hostHash)) {
       if (!rate(`admin-auth:${req.socket.remoteAddress}`, 20)) return res.status(429).json({ error: 'Zu viele Anmeldeversuche. Bitte eine Minute warten.' });
@@ -129,14 +148,19 @@ export function createQuizServer(options = {}) {
     }
     if (!rate(`admin:${req.socket.remoteAddress}`, 300)) return res.status(429).json({ error: 'Zu viele Anfragen. Bitte kurz warten.' });
     next();
-  } });
+  };
+  installQuestionAdmin(app,{db,bank,uploadRoot,authenticate});
+  installMaterials(app,{db,bank,uploadRoot,authenticate});
 
   app.get('/api/config', (req, res) => {
     const port = http.address()?.port ?? 3000;
-    const addresses = Object.values(networkInterfaces()).flat().filter(x => x && x.family === 'IPv4' && !x.internal)
-      .map(x => `http://${x.address}:${port}`);
+    const addresses = localAddresses(port, options.networkReader);
     const deck = bank.deck();
+    const settings = readSettings(db);
+    const availableIds = new Set(bank.learningDeck().questions.map(q => q.id));
     res.json({ title: deck.title, questionCount: deck.questions.length, publicUrl: publicUrl || null,
+      learningCount: availableIds.size, event: settings.event, defaultSet: settings.defaultSet,
+      sets: curatedPack().sets.map(set => ({ ...set, available: set.caseIds.every(id => availableIds.has(id)) })),
       suggestedUrls: [...new Set([...(publicUrl ? [publicUrl] : []), ...addresses, baseForRequest(req)])] });
   });
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
@@ -149,9 +173,17 @@ export function createQuizServer(options = {}) {
     if (!rate(`create:${req.socket.remoteAddress}`, 20)) return res.status(429).json({ error: 'Zu viele Versuche. Bitte kurz warten.' });
     if (!matches(req.body?.hostKey, hostHash)) return res.status(403).json({ error: 'Der Moderationsschlüssel stimmt nicht. Du findest ihn im Server-Terminal.' });
     const duration = Number(req.body.duration ?? 25);
-    if (!DURATIONS.includes(duration)) return res.status(400).json({ error: 'Ungültige Antwortzeit.' });
-    const deck = bank.deck();
+    const mode = req.body.mode ?? 'speed-streak-v2';
+    if (!MODES.includes(mode)) return res.status(400).json({ error: 'Unbekannter Spielmodus.' });
+    if (!(mode === 'speed-streak-v2' ? DURATIONS.includes(duration) : [25,30,45,60,75,90,120,180].includes(duration))) return res.status(400).json({ error: 'Ungültige Antwortzeit.' });
+    const set = curatedPack().sets.find(s => s.id === req.body.setId);
+    let deck;
+    try {
+      deck = mode === 'speed-streak-v2' ? bank.deck() : bank.learningDeck(req.body.caseIds ?? set?.caseIds ?? null);
+      if (isLearning({ mode })) for (const q of deck.questions) validateCase(q,true);
+    } catch (error) { return res.status(400).json({ error: error.message }); }
     if (!deck.questions.length) return res.status(400).json({ error: 'Bitte zuerst mindestens eine Frage in der Fragenverwaltung aktivieren.' });
+    const profile=readSettings(db);deck={...deck,event:profile.event,resourcesUrl:profile.resourcesUrl};
     let base;
     try {
       const url = new URL(req.body.joinBase || baseForRequest(req));
@@ -161,15 +193,15 @@ export function createQuizServer(options = {}) {
     let id;
     do { id = String(randomInt(100000, 1000000)); } while (getRoom(id));
     const hostToken = token();
-    db.prepare('INSERT INTO rooms (id, host_hash, created_at, duration, deck_id, deck_json, join_base, scoring_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-      .run(id, hash(hostToken), Date.now(), duration, deck.id, JSON.stringify(deck), base, SCORING_VERSION);
+    db.prepare('INSERT INTO rooms (id,host_hash,created_at,duration,deck_id,deck_json,join_base,scoring_version,mode,schema_version,set_id,audience) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+      .run(id,hash(hostToken),Date.now(),duration,deck.id,JSON.stringify(deck),base,mode === 'speed-streak-v2' ? SCORING_VERSION : 'learning-v1',mode,mode === 'speed-streak-v2' ? 1 : 3,mode==='speed-streak-v2'?'legacy':set?.id || 'custom',['sek1','sek2','adults'].includes(req.body.audience) ? req.body.audience : 'sek1');
     res.status(201).json({ room: id, hostToken });
   });
   app.get('/api/qr', async (req, res, next) => {
     try {
       const value = String(req.query.url ?? '');
       if (value.length > 512 || !/^https?:\/\//.test(value)) return res.status(400).end();
-      const png = await QRCode.toBuffer(value, { width: 280, margin: 2, errorCorrectionLevel: 'M', color: { dark: '#17263b', light: '#ffffff' } });
+      const png = await QRCode.toBuffer(value, { width: 400, margin: 4, errorCorrectionLevel: 'M', color: { dark: '#14202b', light: '#ffffff' } });
       res.set('Cache-Control', 'public, max-age=86400').type('png').send(png);
     } catch (err) { next(err); }
   });
@@ -185,6 +217,7 @@ export function createQuizServer(options = {}) {
   });
   // This decorative sample is a photo, not an answer key. No content directory is served.
   app.get('/sample', (_req, res) => res.set('Cache-Control', 'public, max-age=86400').sendFile(path.join(contentRoot, 'assets', 'mountain.jpg')));
+  for (const route of ['/materials','/stand.html']) app.get(route,(_req,res)=>res.sendFile(path.join(projectRoot,'public','materials.html')));
   app.use(express.static(path.join(projectRoot, 'public')));
   app.get('/admin', (_req, res) => res.sendFile(path.join(projectRoot, 'public', 'admin.html')));
   for (const route of ['/host', '/screen', '/leaderboard']) app.get(route, (_req, res) => res.sendFile(path.join(projectRoot, 'public', 'index.html')));
@@ -246,6 +279,9 @@ export function createQuizServer(options = {}) {
     handle('answer', (data, done) => {
       const room = getRoom(socket.data.room);
       if (!room || !socket.data.playerId) fail('Bitte zuerst beitreten.');
+      if (isLearning(room)) {
+        schedule(room); submitLearning(db,getRoom(room.id),socket.data.playerId,data); done({ accepted: true }); emitRoom(room.id); return;
+      }
       if (room.phase !== 'question' || Date.now() >= room.deadline) {
         if (room.phase === 'question') reveal(room.id);
         fail('Die Antwortzeit ist vorbei.');
@@ -266,6 +302,10 @@ export function createQuizServer(options = {}) {
     });
     handle('host:action', (data, done) => {
       const room = requireHost();
+      if (isLearning(room)) {
+        const result = learningCommand(db,room,data,getPlayers(room.id).length);
+        schedule(getRoom(room.id)); emitRoom(room.id); done(result); return;
+      }
       const questions = roomDeck(room).questions;
       if (data.action === 'start' && room.phase === 'lobby') {
         if (!getPlayers(room.id).length) fail('Zuerst muss mindestens eine Person beitreten.');
@@ -292,14 +332,19 @@ export function createQuizServer(options = {}) {
     console.error(error.message);
     res.status(500).json({ error: 'Serverfehler. Bitte die Moderation informieren.' });
   });
-  for (const room of db.prepare("SELECT * FROM rooms WHERE phase = 'question'").all()) schedule(room);
+  purgeExpired(db);
+  for (const room of db.prepare("SELECT * FROM rooms WHERE phase IN ('question','first_vote','final_vote')").all()) schedule(room);
   return {
-    app, http, io, db, hostKey,
+    app, http, io, db, hostKey, uploadRoot,
     listen: (port = 3000, host = '0.0.0.0') => new Promise(resolve => http.listen(port, host, () => resolve(http.address()))),
     close: () => new Promise(resolve => {
       clearInterval(cleanup);
       for (const timer of timers.values()) clearTimeout(timer);
-      io.close(() => { db.close(); resolve(); });
+      io.close(() => {
+        db.close();
+        if(temporaryUploads && path.dirname(path.resolve(temporaryUploads))===path.resolve(tmpdir()) && path.basename(temporaryUploads).startsWith('fake-quiz-uploads-'))rmSync(temporaryUploads,{recursive:true,force:true});
+        resolve();
+      });
     })
   };
 }

@@ -1,0 +1,97 @@
+@page { size: A4; margin: 16mm; }
+* { box-sizing: border-box; }
+html { color: #14202B; background: white; font-family: 'Publication Sans',sans-serif; font-size: 11pt; line-height: 1.42; }
+body { margin: 0; }
+h1,h2,h3,p { margin: 0 0 4mm; }
+h1 { font-size: 34pt; line-height: 1.08; letter-spacing: -.035em; }
+h2 { font-size: 20pt; line-height: 1.18; margin-top: 7mm; }
+h3 { font-size: 13pt; line-height: 1.3; }
+a { color: #2755E7; text-decoration: none; overflow-wrap: anywhere; }
+.sheet { break-after: page; }
+.sheet:last-child { break-after: auto; }
+.brand { font-weight: bold; font-size: 10pt; margin-bottom: 3mm; }
+.kicker { color: #2755E7; font-family: 'Publication Mono',monospace; font-size: 9pt; margin-bottom: 6mm; }
+.case-id { display: inline-block; background: #D8FA52; color: #14202B; padding: 2mm 3mm; font-size: 9pt; margin-bottom: 5mm; }
+.lead { background: #F6F2E9; padding: 5mm; margin: 5mm 0; }
+.flow { background: #2755E7; color: white; padding: 5mm; display: flex; justify-content: space-between; gap: 4mm; font-weight: bold; }
+.image-wrap { text-align: center; margin: 5mm 0; }
+.case-image { max-width: 128mm; max-height: 75mm; width: auto; height: auto; object-fit: contain; }
+.solution .case-image { max-height: 32mm; max-width: 95mm; }
+.material-text { background: #F6F2E9; padding: 5mm; white-space: pre-line; font-size: 12pt; line-height: 1.5; }
+.simulation { color: #14202B; border-left: 3mm solid #D8FA52; padding-left: 3mm; font-size: 9pt; margin: 3mm 0; }
+.credit { font-size: 9pt; line-height: 1.35; margin: 3mm 0 5mm; overflow-wrap: anywhere; }
+.prompt { font-size: 15pt; line-height: 1.35; font-weight: bold; padding: 4mm 0; }
+.options { display: flex; flex-wrap: wrap; gap: 5mm; font-size: 10pt; margin: 4mm 0; }
+.writing { min-height: 35mm; margin: 3mm 0 5mm; }
+.writing-line { height: 8mm; border-bottom: .25mm solid #D6D9D7; }
+.writing-task { break-inside: avoid; }
+.writing.small { min-height: 30mm; }
+.source { border-left: 1mm solid #2755E7; padding-left: 4mm; margin: 5mm 0; break-inside: avoid; }
+.source p { font-size: 10.5pt; margin-bottom: 2.5mm; }
+.source .source-meta,.source .source-link,.source .rights { font-size: 9pt; }
+.callout { padding: 4mm; background: #F6F2E9; border-left: 2mm solid #2755E7; margin: 5mm 0; break-inside: avoid; }
+.step { display: grid; grid-template-columns: 11mm 1fr; gap: 4mm; margin: 5mm 0; break-inside: avoid; }
+.step-number { color: #2755E7; font-family: 'Publication Mono',monospace; font-size: 18pt; }
+.step p { margin: 0; }
+table { width: 100%; border-collapse: collapse; margin: 5mm 0; font-size: 10.5pt; }
+th,td { border-bottom: .3mm solid #D6D9D7; padding: 3mm 2mm; text-align: left; vertical-align: top; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+ul,ol { padding-left: 6mm; }
+li { margin-bottom: 3mm; }
+.checklist { list-style: none; padding-left: 0; }
+.checklist li::before { content: '□ '; color: #2755E7; }
+.poster h1 { font-size: 48pt; }
+.poster .case-image { max-width: 140mm; max-height: 65mm; }
+.poster .step { margin: 4mm 0; }
+.poster .qr { display: block; width: 42mm; height: 42mm; margin: 3mm auto; }
+.poster .join-label { text-align: center; padding: 3mm; background: #D8FA52; font-size: 12pt; font-weight: bold; }
+.poster .join-url { font-family: 'Publication Mono',monospace; font-size: 9pt; overflow-wrap: anywhere; text-align: center; }
+.poster-a3 h1 { font-size: 72pt; }
+.poster-a3 p { font-size: 16pt; }
+.poster-a3 .case-image { max-width: 140mm; max-height: 90mm; }
+.poster-a3 .credit { font-size: 10pt; }
+.poster-a3 .step-number { font-size: 26pt; }
+.poster-a3 .step { margin: 8mm 0; }
+.poster-a3 .qr { width: 65mm; height: 65mm; }
+.poster-join { display: grid; grid-template-columns: 45mm 1fr; gap: 5mm; align-items: center; margin-top: 4mm; break-inside: avoid; }
+.poster-join .qr { margin: 0; }
+.poster-join .join-label { text-align: left; }
+.poster-join .join-url { text-align: left; margin: 3mm 0; }
+.poster.has-qr h1 { font-size: 44pt; }
+.poster.has-qr .case-image { max-height: 45mm; }
+.poster.has-qr .step { margin: 3mm 0; }
+.poster-a3.has-qr h1 { font-size: 72pt; }
+.poster-a3.has-qr .case-image { max-height: 90mm; }
+.poster-a3 .poster-join { grid-template-columns: 70mm 1fr; }
+.card h1 { font-size: 21pt; }
+.card .kicker { font-size: 9pt; margin-bottom: 3mm; }
+.card .step { grid-template-columns: 7mm 1fr; gap: 2mm; margin: 3mm 0; }
+.card .step-number { font-size: 12pt; }
+.card p { font-size: 10.5pt; line-height: 1.3; }
+.card .callout { padding: 3mm; margin: 3mm 0; }
+.source-register { font-size: 10.5pt; }
+.source-register article { margin: 5mm 0; break-inside: avoid; }
+.source-register p { margin: 0 0 2mm; }
+.source-register article { break-inside: avoid; }
+h1,h2,h3 { break-after: avoid; }
+.guide-case { padding: 3mm; margin: 3mm 0; }
+.guide-case h3 { margin: 0 0 2mm; font-size: 12pt; }
+.guide-case p { font-size: 10.5pt; margin-bottom: 2mm; }
+.solution h2 { margin-top: 4mm; font-size: 18pt; }
+.solution .source { margin: 3mm 0; }
+.solution .source h3 { font-size: 12pt; margin-bottom: 2mm; }
+.solution .callout { margin: 3mm 0; padding: 3mm; }
+.solution .credit { margin: 2mm 0 3mm; }
+.workshop .case-image { max-height: 24mm; }
+.workshop .material-text { font-size: 10.5pt; padding: 3mm; }
+.workshop .prompt { font-size: 12pt; padding: 2mm 0; }
+.workshop .credit { margin: 2mm 0 3mm; }
+.workshop .writing { margin: 2mm 0 3mm; }
+.workshop h3 { font-size: 11pt; margin-bottom: 2mm; }
+.workshop .writing-line { height: 7.5mm; }
+.workshop .kicker { margin-bottom: 3mm; }
+.workshop .brand { margin-bottom: 2mm; }
+.workshop .writing { margin-top: 1mm; }
+@media screen { body { max-width: 178mm; margin: 15mm auto; padding: 0 5mm; } .sheet { border-bottom: 1px solid #D6D9D7; margin-bottom: 15mm; padding-bottom: 10mm; } }
+@media print { .no-print { display:none!important; } }

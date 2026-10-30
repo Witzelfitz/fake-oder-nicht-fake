@@ -1,0 +1,571 @@
+{
+  "schemaVersion": 3,
+  "createdAt": "2026-10-30",
+  "title": "Der zweite Blick · kuratierte Lernfälle",
+  "cases": [
+    {
+      "id": "blick-panorama",
+      "type": "photo",
+      "title": "Ein Ausblick zum Staunen.",
+      "asset": "assets/mountain.jpg",
+      "answer": "human",
+      "explanation": "Dieses Panorama vom Fronalpstock wurde von Hannes Röst fotografiert und 2010 veröffentlicht. Es besteht aus zwölf zusammengefügten Aufnahmen. Das ist digitale Bildbearbeitung, aber keine generative KI.",
+      "takeaway": "Ein bearbeitetes Foto ist nicht automatisch KI-generiert. Frage nach Aufnahme, Bearbeitung und Herkunft.",
+      "source": "https://commons.wikimedia.org/wiki/File:Fronalpstock_big.jpg",
+      "credit": "Hannes Röst · Fronalpstock · 2010 · verkleinerte Commons-Vorschau, Motiv unverändert",
+      "license": "CC BY-SA 3.0 · https://creativecommons.org/licenses/by-sa/3.0/",
+      "schemaVersion": 3,
+      "axis": "origin",
+      "prompt": "Was ist über die Herstellung dieses Beispiels dokumentiert?",
+      "status": "published",
+      "sources": [
+        {
+          "id": "commons-panorama",
+          "title": "Fronalpstock: Beschreibung und Dateihistorie",
+          "publisher": "Wikimedia Commons / Hannes Röst",
+          "supports": "Die Dateiseite dokumentiert ein Panorama aus zwölf Fotografien und die Veröffentlichung am 26. August 2010.",
+          "limitation": "Veröffentlichungsdatum und Aufnahmezeitpunkt sind verschiedene Angaben.",
+          "locator": "Beschreibung, Lizenz und Dateihistorie",
+          "url": "https://commons.wikimedia.org/wiki/File:Fronalpstock_big.jpg",
+          "publishedAt": "2010-08-26",
+          "reviewedAt": "2026-10-30",
+          "rights": "Hannes Röst · CC BY-SA 3.0 · unveränderte verkleinerte Vorschau; https://creativecommons.org/licenses/by-sa/3.0/"
+        }
+      ],
+      "limitation": "Am Bild allein ist die Herkunft nicht sicher erkennbar; die Auflösung stützt sich auf die Quellenakte.",
+      "transfer": "Welche Originalquelle würdest du beim nächsten Ferienfoto suchen?",
+      "simulation": false,
+      "review": {
+        "sources": true,
+        "rights": true,
+        "didactics": true,
+        "reviewedAt": "2026-10-30",
+        "reviewedBy": "Entwicklungsprüfung: Quellenakten und synthetische Aufgaben abgeglichen"
+      },
+      "privateNotes": "Erst urteilen lassen. Ein Hinweis aus dem Bild allein ist kein Herkunftsnachweis. Anschliessend nach einem konkreten Beleg fragen.",
+      "alt": "Panorama mit Bergen und See vom Fronalpstock."
+    },
+    {
+      "id": "blick-einladung",
+      "type": "text",
+      "title": "Klingt nach einem guten Plan.",
+      "text": "Am Samstag wird unser Dorfplatz zur Ideenwerkstatt. Bring ein altes Gerät, eine neugierige Frage oder einfach Zeit mit. Gemeinsam reparieren, tüfteln und entdecken wir, wie viel Zukunft schon in unserem Alltag steckt.",
+      "answer": "ai",
+      "explanation": "Diese Einladung wurde für das Quiz mit einem Sprachmodell geschrieben. Sie klingt nach einer gewöhnlichen Veranstaltungsankündigung, beschreibt aber keinen belegten realen Anlass.",
+      "takeaway": "Ein natürlicher Schreibstil beweist keine menschliche Urheberschaft. Prüfe bei Einladungen Datum, Veranstalter und Originalveröffentlichung.",
+      "source": "/sources.html#ki-beispiele",
+      "credit": "KI-Text · eigens für den Digimärt erstellt · fiktive Veranstaltung",
+      "license": "Quiz-Eigeninhalt; siehe content/provenance.json",
+      "schemaVersion": 3,
+      "axis": "origin",
+      "prompt": "Wie wurde dieser Einladungstext für das Quiz erstellt?",
+      "status": "published",
+      "sources": [
+        {
+          "id": "log-invitation",
+          "title": "Herstellungsprotokoll dieses Quiz",
+          "publisher": "Projektakte «Fake oder nicht fake?»",
+          "supports": "Die Einladung wurde vom Sprachmodell für dieses Quiz formuliert. Der Anlass ist erfunden.",
+          "limitation": "Ein Projektprotokoll dokumentiert die Erstellung; es ist kein unabhängiger Wahrheitsbeleg.",
+          "locator": "content/provenance.json / q02",
+          "url": null,
+          "publishedAt": null,
+          "reviewedAt": "2026-10-30",
+          "rights": "Für das Projekt erzeugtes Material; siehe ASSETS.md und Herstellungsprotokoll."
+        }
+      ],
+      "limitation": "Aus dem Stil allein lässt sich weder die Herkunft noch ein realer Anlass belegen.",
+      "transfer": "Welche Veranstaltungsangabe würdest du vor dem Weiterleiten prüfen?",
+      "simulation": true,
+      "review": {
+        "sources": true,
+        "rights": true,
+        "didactics": true,
+        "reviewedAt": "2026-10-30",
+        "reviewedBy": "Entwicklungsprüfung: Quellenakten und synthetische Aufgaben abgeglichen"
+      },
+      "privateNotes": "Erst urteilen lassen. Ein Hinweis aus dem Bild allein ist kein Herkunftsnachweis. Anschliessend nach einem konkreten Beleg fragen."
+    },
+    {
+      "id": "blick-werbung",
+      "type": "poster",
+      "title": "Ferien fürs Auge.",
+      "asset": "assets/alpine-poster.png",
+      "answer": "ai",
+      "explanation": "Dieses Reiseplakat wurde für das Quiz mit dem integrierten Bildgenerator erstellt – inklusive Schrift, Berglandschaft und Drucktextur. Es ist keine historische Tourismuswerbung.",
+      "takeaway": "Generative KI kann auch gut lesbare Schrift und überzeugende Werbung erzeugen. Ein professioneller Look ist kein Herkunftsnachweis.",
+      "source": "/sources.html#ki-beispiele",
+      "credit": "KI-Bild · integrierter Bildgenerator · 30.10.2026 · fiktives Reiseplakat",
+      "license": "Quiz-Eigeninhalt; siehe content/provenance.json",
+      "schemaVersion": 3,
+      "axis": "origin",
+      "prompt": "Wie wurde dieses Reiseplakat für das Quiz erstellt?",
+      "status": "published",
+      "sources": [
+        {
+          "id": "log-poster",
+          "title": "Herstellungsprotokoll dieses Quiz",
+          "publisher": "Projektakte «Fake oder nicht fake?»",
+          "supports": "Das Plakat wurde am 30. Oktober 2026 mit dem integrierten Bildgenerator erstellt. Der Prompt ist dokumentiert.",
+          "limitation": "Ein Projektprotokoll dokumentiert die Erstellung; es ist kein unabhängiger Wahrheitsbeleg.",
+          "locator": "content/provenance.json / assets/alpine-poster.png",
+          "url": null,
+          "publishedAt": null,
+          "reviewedAt": "2026-10-30",
+          "rights": "Für das Projekt erzeugtes Material; siehe ASSETS.md und Herstellungsprotokoll."
+        }
+      ],
+      "limitation": "Saubere Schrift und ein professioneller Look entscheiden nicht über die Herkunft.",
+      "transfer": "Wo würdest du eine behauptete Werbekampagne gegenprüfen?",
+      "simulation": true,
+      "review": {
+        "sources": true,
+        "rights": true,
+        "didactics": true,
+        "reviewedAt": "2026-10-30",
+        "reviewedBy": "Entwicklungsprüfung: Quellenakten und synthetische Aufgaben abgeglichen"
+      },
+      "privateNotes": "Erst urteilen lassen. Ein Hinweis aus dem Bild allein ist kein Herkunftsnachweis. Anschliessend nach einem konkreten Beleg fragen."
+    },
+    {
+      "id": "blick-datum",
+      "type": "photo",
+      "title": "Echtes Bild. Richtiges Datum?",
+      "asset": "assets/mountain.jpg",
+      "answer": "refuted",
+      "explanation": "Die konkrete Datumsbehauptung ist widerlegt: Diese Bilddatei war bereits am 26. August 2010 auf Wikimedia Commons veröffentlicht. Ein heute geteilter Post macht das Foto nicht neu.",
+      "takeaway": "Prüfe das früheste belegte Veröffentlichungsdatum.",
+      "source": "https://commons.wikimedia.org/wiki/File:Fronalpstock_big.jpg",
+      "credit": "Hannes Röst · Fronalpstock · 2010 · verkleinerte Commons-Vorschau, Motiv unverändert",
+      "license": "CC BY-SA 3.0 · https://creativecommons.org/licenses/by-sa/3.0/",
+      "schemaVersion": 3,
+      "axis": "claim",
+      "prompt": "Ein fiktiver Post behauptet: «Diese Bilddatei wurde erstmals 2026 veröffentlicht.» Ist das belegt?",
+      "status": "published",
+      "sources": [
+        {
+          "id": "commons-panorama",
+          "title": "Fronalpstock: Beschreibung und Dateihistorie",
+          "publisher": "Wikimedia Commons / Hannes Röst",
+          "supports": "Die Dateiseite dokumentiert ein Panorama aus zwölf Fotografien und die Veröffentlichung am 26. August 2010.",
+          "limitation": "Veröffentlichungsdatum und Aufnahmezeitpunkt sind verschiedene Angaben.",
+          "locator": "Beschreibung, Lizenz und Dateihistorie",
+          "url": "https://commons.wikimedia.org/wiki/File:Fronalpstock_big.jpg",
+          "publishedAt": "2010-08-26",
+          "reviewedAt": "2026-10-30",
+          "rights": "Hannes Röst · CC BY-SA 3.0 · unveränderte verkleinerte Vorschau; https://creativecommons.org/licenses/by-sa/3.0/"
+        }
+      ],
+      "limitation": "Die Dateihistorie widerlegt die behauptete Erstveröffentlichung. Sie belegt nicht automatisch den genauen Aufnahmezeitpunkt.",
+      "transfer": "Wie unterscheidest du «heute geteilt» und «heute entstanden»?",
+      "simulation": true,
+      "review": {
+        "sources": true,
+        "rights": true,
+        "didactics": true,
+        "reviewedAt": "2026-10-30",
+        "reviewedBy": "Entwicklungsprüfung: Quellenakten und synthetische Aufgaben abgeglichen"
+      },
+      "privateNotes": "Erst urteilen lassen. Ein Hinweis aus dem Bild allein ist kein Herkunftsnachweis. Anschliessend nach einem konkreten Beleg fragen.",
+      "caption": "Fiktiver Post: «Erstveröffentlichung 2026»"
+    },
+    {
+      "id": "blick-archiv",
+      "type": "poster",
+      "title": "Ein Klassiker – oder eine Kopie?",
+      "asset": "assets/travel.jpg",
+      "answer": "human",
+      "explanation": "Das Zermatt-Plakat gestaltete Emil Cardinaux 1908. Die Vorlage ist eine Lithografie; gezeigt wird ein Scan aus der Plakatsammlung der Schule für Gestaltung Basel. Die ungewöhnlichen Farben stammen von einem Menschen.",
+      "takeaway": "Stilisierte oder unrealistische Bilder sind nicht automatisch KI-generiert. Kunst und Werbung spielen schon lange mit der Wirklichkeit.",
+      "source": "https://commons.wikimedia.org/wiki/File:CH-000957-X-3396_Cardinaux.jpg",
+      "credit": "Emil Cardinaux · Zermatt · 1908 · Scan: Plakatsammlung SfG Basel · verkleinerte Vorschau",
+      "license": "Public Domain Mark 1.0 · https://creativecommons.org/publicdomain/mark/1.0/",
+      "schemaVersion": 3,
+      "axis": "origin",
+      "prompt": "Welche Herstellung ist für diese Plakatvorlage belegt?",
+      "status": "published",
+      "sources": [
+        {
+          "id": "cardinaux",
+          "title": "Zermatt, Matterhorn 4505m Schweiz",
+          "publisher": "Emil Cardinaux / Plakatsammlung SfG Basel",
+          "supports": "Die Katalogangaben nennen Emil Cardinaux, 1908 und Lithografie.",
+          "limitation": "Die Quelle belegt das historische Werk, nicht die Herkunft jeder heutigen digitalen Kopie.",
+          "locator": "Werkbeschreibung und Datierung",
+          "url": "https://commons.wikimedia.org/wiki/File:CH-000957-X-3396_Cardinaux.jpg",
+          "publishedAt": "1908",
+          "reviewedAt": "2026-10-30",
+          "rights": "Emil Cardinaux, 1908; Scan: SfG Basel · Public Domain Mark 1.0 · unveränderte Vorschau."
+        }
+      ],
+      "limitation": "Unrealistische Farben sind eine gestalterische Entscheidung, kein sicherer KI-Hinweis.",
+      "transfer": "Welches Archiv oder welchen Katalog würdest du öffnen?",
+      "simulation": false,
+      "review": {
+        "sources": true,
+        "rights": true,
+        "didactics": true,
+        "reviewedAt": "2026-10-30",
+        "reviewedBy": "Entwicklungsprüfung: Quellenakten und synthetische Aufgaben abgeglichen"
+      },
+      "privateNotes": "Erst urteilen lassen. Ein Hinweis aus dem Bild allein ist kein Herkunftsnachweis. Anschliessend nach einem konkreten Beleg fragen."
+    },
+    {
+      "id": "blick-wolken",
+      "type": "text",
+      "title": "Gut erklärt. Stimmt der Inhalt?",
+      "text": "Wolken bestehen aus winzigen Wassertröpfchen oder Eiskristallen. Sie entstehen, wenn feuchte Luft abkühlt und Wasserdampf kondensiert. Obwohl die einzelnen Tröpfchen sehr klein sind, können sie zusammen grosse Mengen Wasser enthalten.",
+      "answer": "supported",
+      "explanation": "MeteoSchweiz beschreibt diese Grundlagen auf Seite 9. Der Text ist sachlich gestützt und wurde zugleich mit KI formuliert. Das sind zwei getrennte Feststellungen.",
+      "takeaway": "KI-generiert bedeutet nicht automatisch falsch.",
+      "source": "/sources.html#ki-beispiele",
+      "credit": "KI-Text · eigens für dieses Quiz erstellt · sachlich zutreffendes Beispiel",
+      "license": "Quiz-Eigeninhalt; siehe content/provenance.json",
+      "schemaVersion": 3,
+      "axis": "claim",
+      "prompt": "Ist die Kernaussage zu Wassertröpfchen, Eiskristallen und Kondensation fachlich gestützt?",
+      "status": "published",
+      "sources": [
+        {
+          "id": "meteo-wolken",
+          "title": "Typische Wetterlagen im Alpenraum",
+          "publisher": "MeteoSchweiz",
+          "supports": "Abkühlung feuchter Luft kann zur Kondensation führen. Wolken enthalten kleine Wassertröpfchen und/oder Eiskristalle.",
+          "limitation": "Der Auszug stützt diese Grundlagen, erklärt aber nicht jeden Prozess der Wolkenbildung.",
+          "locator": "Seite 9, «Wie entstehen Wolken?»",
+          "url": "https://www.meteoswiss.admin.ch/dam/jcr%3A26d0cf06-eb32-427f-abde-24e3c79b333e/Web_Wetterlagen_DE_low.pdf",
+          "publishedAt": null,
+          "reviewedAt": "2026-10-30",
+          "rights": "Eigene kurze Zusammenfassung mit Originalverweis; kein Nachdruck des PDF."
+        },
+        {
+          "id": "log-clouds",
+          "title": "Herstellungsprotokoll dieses Quiz",
+          "publisher": "Projektakte «Fake oder nicht fake?»",
+          "supports": "Der Text wurde für dieses Quiz von einem Sprachmodell formuliert.",
+          "limitation": "Ein Projektprotokoll dokumentiert die Erstellung; es ist kein unabhängiger Wahrheitsbeleg.",
+          "locator": "content/provenance.json / q08",
+          "url": null,
+          "publishedAt": null,
+          "reviewedAt": "2026-10-30",
+          "rights": "Für das Projekt erzeugtes Material; siehe ASSETS.md und Herstellungsprotokoll."
+        }
+      ],
+      "limitation": "Die Sachquelle stützt den fachlichen Kern. Die KI-Herstellung ist eine getrennte Frage.",
+      "transfer": "Welche Quelle prüft den Inhalt, welche die Herstellung?",
+      "simulation": false,
+      "review": {
+        "sources": true,
+        "rights": true,
+        "didactics": true,
+        "reviewedAt": "2026-10-30",
+        "reviewedBy": "Entwicklungsprüfung: Quellenakten und synthetische Aufgaben abgeglichen"
+      },
+      "privateNotes": "Erst urteilen lassen. Ein Hinweis aus dem Bild allein ist kein Herkunftsnachweis. Anschliessend nach einem konkreten Beleg fragen."
+    },
+    {
+      "type": "text",
+      "text": "Fiktiver Quartier-Post: «Grosser Erfolg im Repair-Café Nebenan: Alle zwölf mitgebrachten Textilien wurden repariert!»",
+      "credit": "Eigene Unterrichtssimulation",
+      "license": "Projekteigenes Unterrichtsmaterial",
+      "source": "/sources.html#eigene-inhalte",
+      "explanation": "Die Originalnotiz nennt acht reparierte von zwölf mitgebrachten Gegenständen. «Alle zwölf» verändert die belegte Zahl.",
+      "takeaway": "Vergleiche Zahlen mit der Originalfundstelle.",
+      "id": "blick-reparatur",
+      "schemaVersion": 3,
+      "axis": "claim",
+      "prompt": "Passt die Aussage «Alle zwölf Gegenstände wurden repariert» zur Originalnotiz?",
+      "answer": "refuted",
+      "status": "published",
+      "sources": [
+        {
+          "id": "repair-notiz",
+          "title": "Originalnotiz zum letzten Treffen",
+          "publisher": "Repair-Café Nebenan · fiktive Übungsredaktion",
+          "supports": "Beim beschriebenen Treffen wurden zwölf textile Gegenstände mitgebracht; acht konnten repariert werden. Weitere Treffen oder Besucher:innenzahlen sind nicht dokumentiert.",
+          "limitation": "Die Zahlen gelten nur für dieses fiktive Treffen. Keine allgemeine Erfolgsquote.",
+          "locator": "Fiktive Originalnotiz, Absätze 1–2",
+          "url": null,
+          "publishedAt": null,
+          "reviewedAt": "2026-10-30",
+          "rights": "Eigene Unterrichtssimulation; frei für diesen Workshop verwendbar."
+        }
+      ],
+      "limitation": "Das Übungsmaterial beschreibt ein erfundenes Treffen, keine reale Organisation.",
+      "transfer": "Welche Zahl und welche Bezugsgrösse würdest du prüfen?",
+      "simulation": true,
+      "review": {
+        "sources": true,
+        "rights": true,
+        "didactics": true,
+        "reviewedAt": "2026-10-30",
+        "reviewedBy": "Entwicklungsprüfung: Quellenakten und synthetische Aufgaben abgeglichen"
+      },
+      "privateNotes": "Erst urteilen lassen. Ein Hinweis aus dem Bild allein ist kein Herkunftsnachweis. Anschliessend nach einem konkreten Beleg fragen.",
+      "title": "Zwölf gebracht. Wie viele repariert?"
+    },
+    {
+      "type": "text",
+      "text": "Fiktiver Social-Post: «Das Repair-Café Nebenan repariert dauerhaft 67 Prozent aller Gegenstände.»",
+      "credit": "Eigene Unterrichtssimulation",
+      "license": "Projekteigenes Unterrichtsmaterial",
+      "source": "/sources.html#eigene-inhalte",
+      "explanation": "Aus acht von zwölf Gegenständen bei einem Treffen folgt keine dauerhafte Quote. Die Verallgemeinerung bleibt mit diesen Angaben offen.",
+      "takeaway": "Eine richtige Rechnung kann in einem falschen Bezugsrahmen irreführen.",
+      "id": "blick-quote",
+      "schemaVersion": 3,
+      "axis": "claim",
+      "prompt": "Belegt ein Treffen mit 8 von 12 Reparaturen die dauerhafte Erfolgsquote von 67 Prozent?",
+      "answer": "open",
+      "status": "published",
+      "sources": [
+        {
+          "id": "repair-notiz",
+          "title": "Originalnotiz zum letzten Treffen",
+          "publisher": "Repair-Café Nebenan · fiktive Übungsredaktion",
+          "supports": "Beim beschriebenen Treffen wurden zwölf textile Gegenstände mitgebracht; acht konnten repariert werden. Weitere Treffen oder Besucher:innenzahlen sind nicht dokumentiert.",
+          "limitation": "Die Zahlen gelten nur für dieses fiktive Treffen. Keine allgemeine Erfolgsquote.",
+          "locator": "Fiktive Originalnotiz, Absätze 1–2",
+          "url": null,
+          "publishedAt": null,
+          "reviewedAt": "2026-10-30",
+          "rights": "Eigene Unterrichtssimulation; frei für diesen Workshop verwendbar."
+        }
+      ],
+      "limitation": "Die Rechnung 8/12 ist für dieses Treffen plausibel. Eine langfristige Quote ist daraus nicht belegt.",
+      "transfer": "Auf welchen Zeitraum und welche Grundgesamtheit bezieht sich eine Prozentzahl?",
+      "simulation": true,
+      "review": {
+        "sources": true,
+        "rights": true,
+        "didactics": true,
+        "reviewedAt": "2026-10-30",
+        "reviewedBy": "Entwicklungsprüfung: Quellenakten und synthetische Aufgaben abgeglichen"
+      },
+      "privateNotes": "Erst urteilen lassen. Ein Hinweis aus dem Bild allein ist kein Herkunftsnachweis. Anschliessend nach einem konkreten Beleg fragen.",
+      "title": "Eine Zahl wird grösser gemacht."
+    },
+    {
+      "type": "text",
+      "text": "Fiktiver Post: «Mia Keller: Wir garantieren die vollständige Reparatur jedes Gegenstands!»",
+      "credit": "Eigene Unterrichtssimulation",
+      "license": "Projekteigenes Unterrichtsmaterial",
+      "source": "/sources.html#eigene-inhalte",
+      "explanation": "Der Post macht aus einer ausdrücklichen Einschränkung ein vollständiges Versprechen. Das passt nicht zum Übungsinterview.",
+      "takeaway": "Öffne die vollständige Fundstelle eines Zitats.",
+      "id": "blick-zitat",
+      "schemaVersion": 3,
+      "axis": "context",
+      "prompt": "Passt das zugeschriebene Zitat zum vollständigen fiktiven Interview?",
+      "answer": "misleading",
+      "status": "published",
+      "sources": [
+        {
+          "id": "interview",
+          "title": "Fiktives Interview mit Mia Keller",
+          "publisher": "Eigene Unterrichtssimulation",
+          "supports": "Mia Keller sagt im Übungsinterview: Wir versuchen möglichst viel zu reparieren. Eine vollständige Wiederherstellung können wir nicht garantieren.",
+          "limitation": "Fiktive Person und fiktives Gespräch. Kein Zitat einer realen Person.",
+          "locator": "Interviewnotiz, Antwort 2",
+          "url": null,
+          "publishedAt": null,
+          "reviewedAt": "2026-10-30",
+          "rights": "Eigene Unterrichtssimulation; frei für diesen Workshop verwendbar."
+        }
+      ],
+      "limitation": "Keine Aussage über eine reale Person; nur der Widerspruch innerhalb der Übung wird geprüft.",
+      "transfer": "Welchen Satz vor und nach einem Zitat würdest du mitlesen?",
+      "simulation": true,
+      "review": {
+        "sources": true,
+        "rights": true,
+        "didactics": true,
+        "reviewedAt": "2026-10-30",
+        "reviewedBy": "Entwicklungsprüfung: Quellenakten und synthetische Aufgaben abgeglichen"
+      },
+      "privateNotes": "Erst urteilen lassen. Ein Hinweis aus dem Bild allein ist kein Herkunftsnachweis. Anschliessend nach einem konkreten Beleg fragen.",
+      "title": "Hat sie das wirklich gesagt?"
+    },
+    {
+      "type": "text",
+      "text": "Fiktive Nachricht: «Portal A und Portal B melden dasselbe. Also haben zwei unabhängige Redaktionen die Geschichte bestätigt.»",
+      "credit": "Eigene Unterrichtssimulation",
+      "license": "Projekteigenes Unterrichtsmaterial",
+      "source": "/sources.html#eigene-inhalte",
+      "explanation": "Beide Texte kopieren dieselbe Ursprungsmeldung. In der Übung sind deshalb keine zwei unabhängigen Bestätigungen dokumentiert.",
+      "takeaway": "Zähle unabhängige Quellen statt blosse Wiederholungen.",
+      "id": "blick-kopien",
+      "schemaVersion": 3,
+      "axis": "claim",
+      "prompt": "Sind die zwei fiktiven Artikel zwei unabhängige Bestätigungen?",
+      "answer": "refuted",
+      "status": "published",
+      "sources": [
+        {
+          "id": "originalmeldung",
+          "title": "Eine Ursprungsmeldung, zwei Kopien",
+          "publisher": "Eigene Unterrichtssimulation",
+          "supports": "Portal A und Portal B übernehmen denselben Text der Quartier-Mitteilung und verweisen beide auf diese Mitteilung. Eigene Nachrecherche ist in keinem Artikel dokumentiert.",
+          "limitation": "Die Übung kann nur die angegebene Herkunftskette prüfen.",
+          "locator": "Herkunftshinweis beider fiktiver Artikel",
+          "url": null,
+          "publishedAt": null,
+          "reviewedAt": "2026-10-30",
+          "rights": "Eigene Unterrichtssimulation; frei für diesen Workshop verwendbar."
+        }
+      ],
+      "limitation": "Zwei Links können auf derselben Ursprungsquelle beruhen.",
+      "transfer": "Wie würdest du die Quellenkette bis zur ersten Meldung verfolgen?",
+      "simulation": true,
+      "review": {
+        "sources": true,
+        "rights": true,
+        "didactics": true,
+        "reviewedAt": "2026-10-30",
+        "reviewedBy": "Entwicklungsprüfung: Quellenakten und synthetische Aufgaben abgeglichen"
+      },
+      "privateNotes": "Erst urteilen lassen. Ein Hinweis aus dem Bild allein ist kein Herkunftsnachweis. Anschliessend nach einem konkreten Beleg fragen.",
+      "title": "Zwei Portale. Zwei Belege?"
+    },
+    {
+      "type": "text",
+      "text": "Geteilter Ausschnitt aus einer fiktiven Nachricht: «Der Anlass fällt aus …»",
+      "credit": "Eigene Unterrichtssimulation",
+      "license": "Projekteigenes Unterrichtsmaterial",
+      "source": "/sources.html#eigene-inhalte",
+      "explanation": "Die vollständige Nachricht nennt eine Bedingung und anschliessend die Zusage genügend Helfer:innen. Die Veranstaltung findet in der Übung statt.",
+      "takeaway": "Ein wörtlicher Ausschnitt kann trotzdem irreführen.",
+      "id": "blick-ausschnitt",
+      "schemaVersion": 3,
+      "axis": "context",
+      "prompt": "Gibt der Ausschnitt die ganze fiktive Nachricht zutreffend wieder?",
+      "answer": "misleading",
+      "status": "published",
+      "sources": [
+        {
+          "id": "ganze-nachricht",
+          "title": "Vollständige Übungsnachricht",
+          "publisher": "Eigene Unterrichtssimulation",
+          "supports": "Vollständiger Text: Der Anlass fällt aus, wenn bis Freitag keine Helfer:innen zugesagt haben. Heute haben genügend Personen zugesagt; der Anlass findet statt.",
+          "limitation": "Nur diese vorgegebene Nachricht wird geprüft.",
+          "locator": "Beide Sätze der fiktiven Nachricht",
+          "url": null,
+          "publishedAt": null,
+          "reviewedAt": "2026-10-30",
+          "rights": "Eigene Unterrichtssimulation; frei für diesen Workshop verwendbar."
+        }
+      ],
+      "limitation": "Der Ausschnitt ist wörtlich, lässt aber eine entscheidende Bedingung und das Ergebnis weg.",
+      "transfer": "Welche Bedingung oder Fortsetzung fehlt im geteilten Ausschnitt?",
+      "simulation": true,
+      "review": {
+        "sources": true,
+        "rights": true,
+        "didactics": true,
+        "reviewedAt": "2026-10-30",
+        "reviewedBy": "Entwicklungsprüfung: Quellenakten und synthetische Aufgaben abgeglichen"
+      },
+      "privateNotes": "Erst urteilen lassen. Ein Hinweis aus dem Bild allein ist kein Herkunftsnachweis. Anschliessend nach einem konkreten Beleg fragen.",
+      "title": "Ein echter Satz im falschen Ausschnitt."
+    },
+    {
+      "type": "text",
+      "text": "Fiktiver Kommentar: «Das ist der schönste Dorfplatz der ganzen Schweiz.»",
+      "credit": "Eigene Unterrichtssimulation",
+      "license": "Projekteigenes Unterrichtsmaterial",
+      "source": "/sources.html#eigene-inhalte",
+      "explanation": "Ohne Kriterien ist «der schönste» eine Wertung. Die Aussage ist so nicht objektiv belegt und sollte nicht pauschal als Fälschung bezeichnet werden.",
+      "takeaway": "Formuliere zuerst eine konkrete überprüfbare Behauptung.",
+      "id": "blick-meinung",
+      "schemaVersion": 3,
+      "axis": "claim",
+      "prompt": "Ist «Das ist der schönste Dorfplatz» ohne weitere Kriterien objektiv belegbar?",
+      "answer": "open",
+      "status": "published",
+      "sources": [
+        {
+          "id": "meinungskarte",
+          "title": "Meinungsäusserung als Übung",
+          "publisher": "Eigene Unterrichtssimulation",
+          "supports": "Der Satz enthält eine persönliche Wertung. Es werden keine überprüfbaren Kriterien oder Messdaten angegeben.",
+          "limitation": "Meinung kann diskutiert werden; ohne definierte Kriterien entsteht daraus keine belegte Tatsachenrangliste.",
+          "locator": "Einzelner fiktiver Kommentar",
+          "url": null,
+          "publishedAt": null,
+          "reviewedAt": "2026-10-30",
+          "rights": "Eigene Unterrichtssimulation; frei für diesen Workshop verwendbar."
+        }
+      ],
+      "limitation": "Eine Meinung ist nicht automatisch eine Falschmeldung.",
+      "transfer": "Welche Teile eines Posts sind Wertung und welche überprüfbare Tatsachen?",
+      "simulation": true,
+      "review": {
+        "sources": true,
+        "rights": true,
+        "didactics": true,
+        "reviewedAt": "2026-10-30",
+        "reviewedBy": "Entwicklungsprüfung: Quellenakten und synthetische Aufgaben abgeglichen"
+      },
+      "privateNotes": "Erst urteilen lassen. Ein Hinweis aus dem Bild allein ist kein Herkunftsnachweis. Anschliessend nach einem konkreten Beleg fragen.",
+      "title": "Meinung oder überprüfbare Aussage?"
+    }
+  ],
+  "sets": [
+    {
+      "id": "stand-6",
+      "title": "Stand-Challenge · 6 Fälle · 8–12 Minuten",
+      "caseIds": [
+        "blick-panorama",
+        "blick-einladung",
+        "blick-werbung",
+        "blick-datum",
+        "blick-archiv",
+        "blick-wolken"
+      ],
+      "minutes": 10
+    },
+    {
+      "id": "werkstatt-4",
+      "title": "Recherche-Werkstatt · 4 Fälle · 45 Minuten",
+      "caseIds": [
+        "blick-datum",
+        "blick-quote",
+        "blick-zitat",
+        "blick-kopien"
+      ],
+      "minutes": 45
+    },
+    {
+      "id": "alltag-6",
+      "title": "Alltagscheck · 6 Fälle · 45 Minuten",
+      "caseIds": [
+        "blick-reparatur",
+        "blick-quote",
+        "blick-zitat",
+        "blick-kopien",
+        "blick-ausschnitt",
+        "blick-meinung"
+      ],
+      "minutes": 45
+    },
+    {
+      "id": "bibliothek-12",
+      "title": "Alle 12 Lernfälle",
+      "caseIds": [
+        "blick-panorama",
+        "blick-einladung",
+        "blick-werbung",
+        "blick-datum",
+        "blick-archiv",
+        "blick-wolken",
+        "blick-reparatur",
+        "blick-quote",
+        "blick-zitat",
+        "blick-kopien",
+        "blick-ausschnitt",
+        "blick-meinung"
+      ],
+      "minutes": 90
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "snapshot": "522c24ca0179802feb81",
+  "contentVersion": "3376938bb9163792",
+  "contentSource": "sqlite-library",
+  "createdAt": "2026-10-30T16:34:12.888Z",
+  "author": "Benjamin Hanimann",
+  "language": "de-CH",
+  "renderer": "Chromium 156.0.8078.4",
+  "rendererSource": "650d0e25a08e9a562818f9e9e5cc6b5a6c101aeac467affade6fcc6b8035d31d",
+  "cases": [
+    {
+      "id": "blick-datum",
+      "revision": 1
+    },
+    {
+      "id": "blick-quote",
+      "revision": 1
+    },
+    {
+      "id": "blick-zitat",
+      "revision": 1
+    },
+    {
+      "id": "blick-kopien",
+      "revision": 1
+    }
+  ],
+  "files": [
+    {
+      "kind": "moderationsguide",
+      "audience": "facilitator",
+      "format": "A4",
+      "path": "moderation/moderationsguide.pdf",
+      "sha256": "aaa78a9bca5f37f85ac5b5622aa0b5f46fd44a05a9d785b41d8653955874c70e",
+      "pages": 4,
+      "bytes": 415306
+    },
+    {
+      "kind": "loesungen",
+      "audience": "facilitator",
+      "format": "A4",
+      "path": "moderation/loesungen.pdf",
+      "sha256": "fcc1010c23be480517fb026ab08a281357ae07289059adb9e728c91abcdb1e2f",
+      "pages": 4,
+      "bytes": 643948
+    },
+    {
+      "kind": "quellenregister",
+      "audience": "facilitator",
+      "format": "A4",
+      "path": "moderation/quellenregister.pdf",
+      "sha256": "7ca1dd1389e07b672e1400df59ff011916067328164e0376613a836af6f881e4",
+      "pages": 2,
+      "bytes": 401362
+    },
+    {
+      "kind": "werkstattheft",
+      "audience": "participant",
+      "format": "A4",
+      "path": "teilnehmende/werkstattheft.pdf",
+      "sha256": "1119664b7c33df1a901e94092e1a3238d1fed291ebe3ee1e664cca27f4a3f501",
+      "pages": 4,
+      "bytes": 630819
+    },
+    {
+      "kind": "stationskarten",
+      "audience": "facilitator",
+      "format": "A4",
+      "path": "moderation/stationskarten.pdf",
+      "sha256": "7aa17c6a57745421118f5d987335895737932361c7dbc0274b80322b1adee6dd",
+      "pages": 4,
+      "bytes": 409134
+    },
+    {
+      "kind": "gruppenreflexion",
+      "audience": "participant",
+      "format": "A4",
+      "path": "teilnehmende/gruppenreflexion.pdf",
+      "sha256": "fd14f5957fc0f39a26243495ddd31818b2cca97c0c5d31bc8f38d67e980ac4a4",
+      "pages": 1,
+      "bytes": 379553
+    },
+    {
+      "kind": "kreativauftrag",
+      "audience": "participant",
+      "format": "A4",
+      "path": "teilnehmende/kreativauftrag.pdf",
+      "sha256": "e4c57850e2617b656d771b7453122aae671411ea1efee458bdcb4381085cec91",
+      "pages": 2,
+      "bytes": 394256
+    }
+  ],
+  "qa": {
+    "renderedPages": 21,
+    "renderDpi": 150,
+    "problems": [],
+    "warnings": [],
+    "visualReview": "complete: every delivered page inspected individually at 150 dpi; grayscale samples inspected; development review, 2026-10-30",
+    "physicalPrint": "not-performed",
+    "pdfUa": "not-certified",
+    "qr": "not-applicable-generic-poster"
+  }
+}
