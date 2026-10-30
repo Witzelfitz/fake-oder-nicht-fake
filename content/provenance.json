@@ -1,0 +1,83 @@
+{
+  "createdAt": "2026-10-30",
+  "purpose": "Medienkompetenz-Quiz, Digimärt Alpnach, Stand 02",
+  "note": "Entstehungsprotokoll der Quiz-Erstellung, kein unabhängiger Echtheitsnachweis. Keine genaue Bildmodell-Version vom integrierten Tool ausgewiesen. Die Asset-Prüfsummen beziehen sich auf die tatsächlich ausgelieferten Dateien.",
+  "images": [
+    {
+      "questionId": "q01",
+      "asset": "assets/mountain.jpg",
+      "origin": "human",
+      "creator": "Hannes Röst",
+      "source": "https://commons.wikimedia.org/wiki/File:Fronalpstock_big.jpg",
+      "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Fronalpstock_big.jpg/1280px-Fronalpstock_big.jpg",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "changes": "Verkleinerte Commons-Vorschau, keine weiteren Motivänderungen. Original ist ein digital zusammengesetztes Panorama aus zwölf Fotos.",
+      "sha256": "5aa4bb3f5c51bc2f13ad3e7bb7f951884f355d2edc3f647295fd538476512156"
+    },
+    {
+      "questionId": "q03",
+      "asset": "assets/alpine-poster.png",
+      "origin": "ai",
+      "tool": "Integriertes image_gen-Tool in Codex (kein API-/CLI-Fallback)",
+      "prompt": "Use case: ads-marketing. Asset type: complete travel advertising poster for an educational AI-or-human quiz, portrait 2:3. Create a beautiful plausible Swiss travel poster inspired by early 20th century graphic travel advertising, an angular ochre alpine mountain rising above a deep teal lake, forest in the foreground, warm cream paper, flat lithographic colour fields with fine subtle print texture. Strong editorial typography. Include exactly this large heading at top: \"ALPENLUFT\". Include exactly this smaller subheading at bottom: \"Zeit für einen Perspektivenwechsel.\" No other text, no real company logos, no watermark, no frame or surrounding room. Full bleed poster artwork. Make the lettering accurate and the visual professionally convincing; no deliberate AI errors. This is an explicitly generated example for an educational media provenance quiz.",
+      "changes": "Originalausgabe unverändert ins Repository kopiert.",
+      "license": "Für dieses Projekt erzeugter KI-Inhalt; siehe ASSETS.md",
+      "sha256": "582577729ec9946c7a9d36806e1969b6a6d5ec16ac2af8177f5e1b99f458b793"
+    },
+    {
+      "questionId": "q05",
+      "asset": "assets/lake.png",
+      "origin": "ai",
+      "tool": "Integriertes image_gen-Tool in Codex (kein API-/CLI-Fallback)",
+      "prompt": "Use case: photorealistic-natural. Asset type: educational media-literacy quiz photo. Create one highly convincing natural landscape photograph of an unnamed Swiss alpine lake, green grassy foreground, steep craggy mountains beyond, a tiny wooden boathouse at the shoreline and a few ordinary clouds. Midday soft sunlight, restrained colours, realistic water reflections, documentary tourist camera photograph, landscape 3:2 aspect ratio. No people, no text, no watermark, no graphic borders. This is an explicitly AI-created example for students to guess the provenance; make it plausible rather than surreal.",
+      "changes": "Originalausgabe unverändert ins Repository kopiert.",
+      "license": "Für dieses Projekt erzeugter KI-Inhalt; siehe ASSETS.md",
+      "sha256": "491310e04ea7050704a69f340dd705c4602510e4648f879d00bedc70eceb92fa"
+    },
+    {
+      "questionId": "q07",
+      "asset": "assets/travel.jpg",
+      "origin": "human",
+      "creator": "Emil Cardinaux, 1908; Scan: Plakatsammlung Schule für Gestaltung Basel",
+      "source": "https://commons.wikimedia.org/wiki/File:CH-000957-X-3396_Cardinaux.jpg",
+      "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/CH-000957-X-3396_Cardinaux.jpg/960px-CH-000957-X-3396_Cardinaux.jpg",
+      "license": "Public Domain Mark 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "changes": "Verkleinerte Commons-Vorschau, keine weiteren Motivänderungen.",
+      "sha256": "448096d946fffdad428976299160f8e40f6cc809fe07075865256087f178c5c0"
+    }
+  ],
+  "texts": [
+    {
+      "questionId": "q02",
+      "origin": "ai",
+      "tool": "Codex-Sprachmodell",
+      "writingBrief": "Verfasse für das Quiz eine kurze, natürlich klingende Einladung zu einer fiktiven Ideenwerkstatt auf einem Dorfplatz. Keine realen Veranstalter oder belegten Termine behaupten.",
+      "note": "Dieser Auftrag dokumentiert die in dieser Sitzung ausgeführte Textgestaltung; kein separater externer API-Aufruf."
+    },
+    {
+      "questionId": "q04",
+      "origin": "human",
+      "creator": "Johann Wolfgang von Goethe",
+      "source": "https://de.wikisource.org/wiki/Ein_Gleiches",
+      "license": "Gemeinfreier Originaltext",
+      "changes": "Historische Schreibweise übernommen, Zeilenumbrüche für die Quizanzeige."
+    },
+    {
+      "questionId": "q06",
+      "origin": "human",
+      "creator": "Jacob und Wilhelm Grimm",
+      "source": "https://de.wikisource.org/wiki/Der_Froschk%C3%B6nig_oder_der_eiserne_Heinrich_(1857)",
+      "license": "Gemeinfreier Originaltext",
+      "changes": "Erster Absatz in Originalschreibweise."
+    },
+    {
+      "questionId": "q08",
+      "origin": "ai",
+      "tool": "Codex-Sprachmodell",
+      "writingBrief": "Verfasse eine kurze sachlich zutreffende Erklärung zur Entstehung und Zusammensetzung von Wolken. Sie soll im Quiz zeigen, dass KI-generiert nicht automatisch falsch bedeutet.",
+      "note": "Dieser Auftrag dokumentiert die in dieser Sitzung ausgeführte Textgestaltung; kein separater externer API-Aufruf."
+    }
+  ]
+}

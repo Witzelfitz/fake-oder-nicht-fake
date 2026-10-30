@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f3eb">
+  <meta name="description" content="Fake oder nicht fake? Das interaktive KI-Quiz am Digimärt Alpnach. Schau genau hin, stimme ab und prüfe die Quelle.">
+  <title>Fake oder nicht fake? · Digimärt Alpnach</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/socket.io/socket.io.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Digimärt Startseite"><span class="brand-mark" aria-hidden="true">d.</span><span>DIGIMÄRT<span class="brand-small">ALPNACH / STAND 02</span></span></a>
+    <nav aria-label="Hauptnavigation"><a href="/leaderboard">Rangliste ↗</a><span id="connection" class="connection">Verbinde …</span></nav>
+  </header>
+  <main id="app"><div class="loading">Das Quiz wird geladen …</div></main>
+  <div id="toast" class="toast" role="alert" hidden></div>
+  <footer class="site-footer"><span>Ein zweiter Blick lohnt sich.</span><div><a href="/stand.html">Standunterlagen</a><a href="/sources.html">Quellen & Datenschutz</a><a href="/host">Moderation</a></div></footer>
+  <noscript>Bitte JavaScript einschalten, um am Live-Quiz teilzunehmen.</noscript>
+</body>
+</html>

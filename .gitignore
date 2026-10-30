@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.*
+!.env.example
+data/*
+!data/.gitkeep
+test-results/
+playwright-report/
+output/
+*.log
+.DS_Store
