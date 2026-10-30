@@ -48,6 +48,7 @@ export function createQuizServer(options = {}) {
   const http = createServer(app);
   const io = new Server(http, { maxHttpBufferSize: 8192, serveClient: true });
   const timers = new Map();
+  const pendingRoomEmits = new Map();
   const limits = new Map();
   function rate(key, max, windowMs = 60000) {
     const now = Date.now();
@@ -111,11 +112,20 @@ export function createQuizServer(options = {}) {
     };
   }
   function emitRoom(id) {
+    clearTimeout(pendingRoomEmits.get(id));
+    pendingRoomEmits.delete(id);
     const room = getRoom(id);
     if (!room) return;
     for (const socket of io.sockets.sockets.values()) {
       if (socket.data.room === id) socket.emit('state', view(room, socket.data));
     }
+  }
+  function queueRoomEmit(id) {
+    if (pendingRoomEmits.has(id)) return;
+    // A burst of votes needs one fresh view per device, rather than one per vote.
+    const timer = setTimeout(() => emitRoom(id), 40);
+    timer.unref();
+    pendingRoomEmits.set(id, timer);
   }
   function reveal(id) {
     clearTimeout(timers.get(id)); timers.delete(id);
@@ -274,13 +284,13 @@ export function createQuizServer(options = {}) {
       socket.data = { room: room.id, playerId: player.id };
       schedule(room);
       done({ playerId: player.id, playerToken, state: view(getRoom(room.id), socket.data) });
-      emitRoom(room.id);
+      queueRoomEmit(room.id);
     });
     handle('answer', (data, done) => {
       const room = getRoom(socket.data.room);
       if (!room || !socket.data.playerId) fail('Bitte zuerst beitreten.');
       if (isLearning(room)) {
-        schedule(room); submitLearning(db,getRoom(room.id),socket.data.playerId,data); done({ accepted: true }); emitRoom(room.id); return;
+        schedule(room); submitLearning(db,getRoom(room.id),socket.data.playerId,data); done({ accepted: true }); queueRoomEmit(room.id); return;
       }
       if (room.phase !== 'question' || Date.now() >= room.deadline) {
         if (room.phase === 'question') reveal(room.id);
@@ -298,7 +308,7 @@ export function createQuizServer(options = {}) {
       db.prepare('INSERT INTO answers (player_id, question_id, choice, points, answered_at, elapsed_ms, base_points, speed_bonus, streak_bonus, streak) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
         .run(socket.data.playerId, q.id, data.choice, scored.points, now, scored.elapsedMs, scored.base, scored.speed, scored.series, scored.streak);
       done({ accepted: true });
-      emitRoom(room.id);
+      queueRoomEmit(room.id);
     });
     handle('host:action', (data, done) => {
       const room = requireHost();
@@ -340,6 +350,8 @@ export function createQuizServer(options = {}) {
     close: () => new Promise(resolve => {
       clearInterval(cleanup);
       for (const timer of timers.values()) clearTimeout(timer);
+      for (const timer of pendingRoomEmits.values()) clearTimeout(timer);
+      pendingRoomEmits.clear();
       io.close(() => {
         db.close();
         if(temporaryUploads && path.dirname(path.resolve(temporaryUploads))===path.resolve(tmpdir()) && path.basename(temporaryUploads).startsWith('fake-quiz-uploads-'))rmSync(temporaryUploads,{recursive:true,force:true});

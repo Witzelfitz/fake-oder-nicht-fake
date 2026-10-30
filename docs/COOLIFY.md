@@ -4,7 +4,7 @@ Das Repository enthält das vollständige Dockerfile. Die Anwendung benötigt ei
 
 ## GitHub und Anwendung
 
-In Coolify eine Anwendung mit Zugriff auf das private Repository `Witzelfitz/fake-oder-nicht-fake` verbinden, etwa über die GitHub App oder einen Deploy Key. Branch: **main**. Als Build Pack / Build Strategy **Dockerfile** wählen. Base Directory ist das Repository-Wurzelverzeichnis (`/`); Dockerfile Location ist `Dockerfile` in diesem Verzeichnis. Start- und Installationsbefehl übernimmt das Dockerfile.
+In Coolify eine Anwendung mit Zugriff auf das öffentliche Repository `Witzelfitz/fake-oder-nicht-fake` verbinden. Branch: **main**. Als Build Pack / Build Strategy **Dockerfile** wählen. Das Laufzeitimage basiert auf Node 24 Alpine und enthält nur Produktionsabhängigkeiten. Base Directory ist das Repository-Wurzelverzeichnis (`/`); Dockerfile Location ist `Dockerfile` in diesem Verzeichnis. Start- und Installationsbefehl übernimmt das Dockerfile.
 
 **Ports Exposes: `3000`**. Die öffentliche HTTPS-Domain auf diese Anwendung richten. Der Prozess lauscht über `HOST=0.0.0.0` auf dem Containerport. Eine öffentliche direkte Portfreigabe auf dem Host ist für den Zugriff über den Coolify-Proxy nicht nötig.
 
@@ -41,10 +41,27 @@ Nach dem Deploy zuerst `https://DEINE-DOMAIN/api/health` öffnen; die Antwort la
 
 Danach unter `/host` eine Stand-Challenge mit `stand-6` erstellen. Mit zwei Geräten über die öffentliche Domain beitreten, auf «Live verbunden» achten und eine Abstimmung samt Auflösung testen. In `/materials` Anlass und Ressourcen prüfen. Allgemeine Druckplakate können sofort verwendet werden; ein Raumplakat erst nach Prüfung des tatsächlichen QR-Ziels ausgeben.
 
-Der Docker-Healthcheck nutzt das bereits vorhandene Node.js und `GET /api/health`. Er benötigt weder curl noch wget. Coolify verwendet bei Dockerfile-Anwendungen diesen im Image definierten Check anstelle eines zusätzlich konfigurierten Dashboard-Checks. Details: [Coolify: Health Checks](https://coolify.io/docs/applications/configuration/health-checks).
+Der Docker-Healthcheck nutzt das bereits vorhandene Node.js und `GET /api/health` auf `127.0.0.1`. Er benötigt weder curl noch wget. In Coolify 4.5.3 den zusätzlichen Dashboard-Healthcheck ausschalten, damit der im Dockerfile definierte Check erhalten bleibt. Ein eingeschalteter Dashboard-Check überschreibt den Image-Check. Bei einem alternativ verwendeten HTTP-Check ausdrücklich `127.0.0.1` statt `localhost` setzen, weil der Prozess auf IPv4 lauscht. Details: [Coolify: Health Checks](https://coolify.io/docs/applications/configuration/health-checks).
 
 Die geschützten Druckansichten unter `/materials` funktionieren im Produktionscontainer; dort kannst du im Browser als PDF speichern. Der automatisierte PDF-Dateisatz-Build mit Chromium/Python bleibt ein separates lokales Werkzeug und wird nicht im schlanken Produktionsimage installiert. Die fertigen Dateisätze stehen im GitHub-Repository unter `docs/materials/`.
 
 ## Prüfstand
 
-Die Anwendung wurde mit 31 Serverchecks und sechs Browserabläufen geprüft. Der Healthcheck-Befehl wird lokal gegen den laufenden Server sowie mit nicht erreichbarem Ziel geprüft. Ein Docker-Image-Build und eine echte Coolify-Bereitstellung wurden hier nicht ausgeführt: Der lokale Docker-Dienst war nicht gestartet; die Veröffentlichung erfolgt anschliessend durch Benjamin.
+Die Anwendung wurde mit 31 Serverchecks und sechs Browserabläufen geprüft. Der Healthcheck-Befehl wird lokal gegen den laufenden Server sowie mit nicht erreichbarem Ziel geprüft.
+
+## Betrieb unter ki.mmacodeclub.ch
+
+Coolify-Projekt **Fake oder nicht fake**, Umgebung **production**, Anwendung `zegtndfpm5owvtqkf785djrm` auf **localhost / witzelfitz-coolify-01**. Die Domain zeigt bereits direkt auf diesen Server; für den kleinen Einabendbetrieb ist kein weiterer Proxy oder Server nötig.
+
+- Öffentlicher Einstieg: https://ki.mmacodeclub.ch
+- Moderation: https://ki.mmacodeclub.ch/host
+- Fragenverwaltung: https://ki.mmacodeclub.ch/admin
+- Druckmaterial: https://ki.mmacodeclub.ch/materials
+- Ein Container, maximal **256 MiB RAM**, **0.5 CPU**, kein zusätzlicher Swap; Node-Heap maximal 128 MiB.
+- Persistentes benanntes Volume unter `/app/data` für SQLite und Uploads. `DB_PATH=/app/data/quiz.sqlite`, `PUBLIC_URL=https://ki.mmacodeclub.ch`.
+- Fester zufälliger `HOST_KEY` ausschliesslich in den Coolify-Laufzeitvariablen; Zugang wird dem privaten Owner-Chat von **@pawicobot** übermittelt.
+- **Consistent Container Name** eingeschaltet, damit bei einem Redeploy die alte Instanz zuerst endet und niemals zwei Prozesse dieselbe SQLite-Datei öffnen.
+- Automatische Deployments und Vorschau-Deployments ausgeschaltet. Updates bewusst über Coolify deployen, nachdem aktive Gruppen abgeschlossen sind. Zwei Imageversionen behalten.
+- Kein veröffentlichter Hostport. HTTPS und WebSockets laufen über den vorhandenen Coolify-Proxy.
+
+Zum Abschalten nach dem Anlass nur diese Anwendung in Coolify stoppen; Projekt und Datenvolume erhalten. Ein neuer Start verwendet denselben Schlüssel und dieselben gespeicherten Daten. Kein automatisches Abschaltdatum gesetzt.
