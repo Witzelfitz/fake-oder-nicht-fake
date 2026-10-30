@@ -5,7 +5,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY --chown=node:node server ./server
 COPY --chown=node:node public ./public
 COPY --chown=node:node content ./content
-COPY --chown=node:node scripts ./scripts
+COPY --chown=node:node scripts/reset-db.js ./scripts/reset-db.js
 COPY --chown=node:node documents ./documents
 RUN mkdir -p /app/data && chown node:node /app/data
 USER node

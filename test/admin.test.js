@@ -23,7 +23,7 @@ async function setup(t) {
     if (path.dirname(folder) === path.resolve(tmpdir()) && path.basename(folder).startsWith('fake-admin-test-')) rmSync(folder, { recursive: true, force: true });
   });
   async function start() {
-    const server = createQuizServer({ dbPath, hostKey: key }); servers.push(server);
+    const server = createQuizServer({ legacy: true, dbPath, hostKey: key }); servers.push(server);
     await server.listen(0, '127.0.0.1');
     const base = `http://127.0.0.1:${server.http.address().port}`;
     const api = async (route, method = 'GET', body) => fetch(`${base}/api/admin${route}`, { method, headers, ...(body ? { body: JSON.stringify(body) } : {}) });
@@ -40,7 +40,7 @@ test('Fragenverwaltung schützt sämtliche Schreib- und Lesezugriffe und validie
   for (const [route, method] of [['/questions', 'GET'], ['/questions', 'POST'], ['/media', 'POST'], ['/order', 'POST']]) {
     assert.equal((await fetch(`${f.base}/api/admin${route}`, { method })).status, 401);
   }
-  const list = await (await f.api('/questions')).json(); assert.equal(list.questions.length, 8);
+  const list = await (await f.api('/questions')).json(); assert.equal(list.questions.length, 10);
   assert.equal((await f.api('/questions', 'POST', { ...own, source: 'javascript:alert(1)' })).status, 400);
   assert.equal((await f.api('/questions', 'POST', { ...own, explanation: '' })).status, 400);
   assert.equal((await f.api('/questions', 'POST', { ...own, type: 'photo', asset: '../.env' })).status, 400);
@@ -73,14 +73,14 @@ test('Bilder hochladen, Reihenfolge ändern und Löschen beeinflusst bestehende 
   await f.api(`/questions/${q.id}`, 'DELETE', { version: q.version });
   assert.equal((await fetch(`${f.base}/media/${oldRoom.room}/0`)).status, 200);
   const stored = JSON.parse(f.server.db.prepare('SELECT deck_json FROM rooms WHERE id = ?').get(oldRoom.room).deck_json);
-  assert.equal(stored.questions[0].id, q.id); assert.equal(stored.questions.length, 9);
+  assert.equal(stored.questions[0].id, q.id); assert.equal(stored.questions.length, 11);
   const fresh = await f.room();
   const freshDeck = JSON.parse(f.server.db.prepare('SELECT deck_json FROM rooms WHERE id = ?').get(fresh.room).deck_json);
-  assert.equal(freshDeck.questions.length, 8);
+  assert.equal(freshDeck.questions.length, 10);
   assert.equal(freshDeck.questions.some(e => e.id === q.id), false);
   await f.stop();
   const next = await env.start();
-  assert.equal((await (await next.api('/questions')).json()).questions.length, 8);
+  assert.equal((await (await next.api('/questions')).json()).questions.length, 10);
   assert.equal((await fetch(`${next.base}/media/${oldRoom.room}/0`)).status, 200);
 });
 

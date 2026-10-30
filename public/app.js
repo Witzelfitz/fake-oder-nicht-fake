@@ -1,250 +1,182 @@
 /* global io */
 const app = document.querySelector('#app');
-const socket = io({ autoConnect: false });
-const params = new URLSearchParams(location.search);
-const role = location.pathname === '/host' ? 'host' : location.pathname === '/screen' ? 'screen' : 'player';
-let code = params.get('code') || '';
-let state, config, toastTimer, memoryCredentials;
-let serverOffset = 0;
-let requestPending = false;
-let boardDuration = 25;
-let renderedKey = null;
-const learning = () => ['learning-v1','workshop-v1'].includes(state?.mode);
-const commandId = () => Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('');
 const $ = selector => document.querySelector(selector);
-const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const number = value => Number(value).toLocaleString('de-CH');
-const seconds = value => value === null || value === undefined ? '–' : `${(value / 1000).toFixed(1)} s`;
-const typeLabel = type => ({ photo: 'Foto', text: 'Text', poster: 'Plakat' }[type]);
-const classic = () => state?.scoringVersion === 'classic-v1';
-const rules = () => classic() ? '1’000 Punkte pro Treffer (frühere Wertung).' : 'Richtig: 1’000 Punkte + bis zu 500 Tempo- und 400 Serienbonus.';
-const getSaved = key => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } };
-const credentials = () => memoryCredentials || getSaved(`quiz-player-${code}`);
+const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const socket = io({ autoConnect: false });
+const role = location.pathname === '/host' ? 'host' : location.pathname === '/screen' ? 'screen' : 'player';
+let code = new URLSearchParams(location.search).get('code') || '';
+let state, config, renderedKey, memoryCredentials, toastTimer;
+let pending = false, serverOffset = 0;
+const saved = key => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } };
+const credentials = () => memoryCredentials || saved(`quiz-player-${code}`);
 const hostToken = () => { try { return sessionStorage.getItem(`quiz-host-${code}`); } catch { return null; } };
+const originLabel = answer => answer === 'ai' ? 'KI-generiert' : 'Echt aufgenommen';
 
-function showToast(message) {
+function notify(message) {
   $('#toast').textContent = message; $('#toast').hidden = false;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('#toast').hidden = true; }, 6000);
-}
-function connectionLabel(connected) {
-  $('#connection').textContent = connected ? 'Live verbunden' : 'Verbindung unterbrochen';
-  $('#connection').classList.toggle('connected', connected);
-  document.body.classList.toggle('offline', !connected);
 }
 function emit(event, payload) {
   return new Promise((resolve, reject) => {
     if (!socket.connected) return reject(new Error('Keine Verbindung. Bitte kurz warten.'));
-    socket.timeout(8000).emit(event, payload, (error, response) => {
-      if (error) reject(new Error('Der Server antwortet nicht. Bitte erneut versuchen.'));
-      else if (!response.ok) reject(new Error(response.error));
+    socket.timeout(10000).emit(event, payload, (error, response) => {
+      if (error) reject(new Error('Bitte nochmals versuchen.'));
+      else if (!response?.ok) reject(new Error(response?.error || 'Das hat nicht geklappt.'));
       else resolve(response);
     });
   });
 }
+function connection(connected) {
+  $('#connection').textContent = connected ? 'Live verbunden' : 'Verbindung unterbrochen';
+  $('#connection').classList.toggle('connected', connected);
+}
 function receive(next) {
-  state = next; serverOffset = next.serverTime - Date.now(); code = next.room;
-  renderState(); updateClock();
+  if (next.mode !== 'simple-v1') {
+    code = ''; state = null; renderedKey = null;
+    history.replaceState(null, '', role === 'host' ? '/host' : role === 'screen' ? '/screen' : '/');
+    if (role === 'host') setup();
+    else if (role === 'player') landing();
+    else app.innerHTML = '<section class="narrow"><h1>Neue Runde, neuer Code.</h1><p>Den Beamer aus der neuen Moderation öffnen.</p></section>';
+    notify('Das neue Medienquiz ist bereit. Bitte eine neue Gruppe starten.');
+    return;
+  }
+  state = next; code = next.room; serverOffset = next.serverTime - Date.now(); render(); updateClock();
 }
 socket.on('state', receive);
-socket.on('disconnect', () => connectionLabel(false));
-socket.on('connect_error', () => connectionLabel(false));
+socket.on('disconnect', () => connection(false));
+socket.on('connect_error', () => connection(false));
 socket.on('connect', async () => {
-  connectionLabel(true);
-  if (!code || location.pathname === '/leaderboard') return;
+  connection(true);
+  if (!code) return;
   try {
     if (role === 'host' && hostToken()) receive((await emit('watch', { room: code, hostToken: hostToken() })).state);
     else if (role === 'screen') receive((await emit('watch', { room: code })).state);
     else if (role === 'player' && credentials()) receive((await emit('join', { room: code, ...credentials() })).state);
-  } catch (error) { showToast(error.message); }
+  } catch (error) { notify(error.message); }
 });
 
-function renderLanding() {
-  app.innerHTML = `<section class="narrow entry"><p class="eyebrow">FAKE ODER NICHT FAKE? · DER ZWEITE BLICK</p><h1>Traust du deinem ersten Blick?</h1><p>Ein Eindruck. Ein Beleg. Ein Prüfschritt für den Alltag.</p>
-    <form id="join-form"><label for="code">Spielcode</label><input id="code" name="code" inputmode="numeric" autocomplete="off" pattern="[0-9]{6}" maxlength="6" minlength="6" placeholder="6-stelliger Code" value="${escape(code)}" required>
-    <label for="nickname">Dein Spitzname</label><input id="nickname" name="nickname" autocomplete="off" maxlength="20" minlength="2" placeholder="Zum Beispiel: Bergfuchs" required>
-    <p class="field-help">Bitte einen erfundenen Spitznamen verwenden. Er erscheint in der Gruppe und im Punktemodus auf der Rangliste.</p><button class="button primary" type="submit">Ich rate mit</button><p id="form-error" class="form-error" role="alert"></p></form></section>`;
+function landing() {
+  app.innerHTML = `<section class="narrow entry"><p class="eyebrow">${config.questionCount} RUNDEN · ETWA 10 MINUTEN</p><h1>Echt oder KI?<br>Was meinst du?</h1><p>Bilder, kurze Clips und dein Bauchgefühl.</p>
+    <form id="join-form"><label for="code">Spielcode</label><input id="code" inputmode="numeric" autocomplete="off" pattern="[0-9]{6}" maxlength="6" minlength="6" placeholder="6-stelliger Code" value="${esc(code)}" required>
+    <label for="nickname">Dein Spitzname</label><input id="nickname" autocomplete="off" maxlength="20" minlength="2" placeholder="Zum Beispiel: Bergfuchs" required>
+    <button class="button primary" type="submit">Ich rate mit</button><p id="form-error" class="form-error" role="alert"></p></form></section>`;
   $('#join-form').addEventListener('submit', async event => {
-    event.preventDefault(); if (requestPending) return;
-    requestPending = true; const button = $('#join-form button'); button.disabled = true;
-    code = $('#code').value.trim();
+    event.preventDefault(); if (pending) return; pending = true;
+    const button = $('#join-form button'); button.disabled = true; code = $('#code').value.trim();
     try {
       const result = await emit('join', { room: code, nickname: $('#nickname').value.trim() });
       memoryCredentials = { playerId: result.playerId, playerToken: result.playerToken };
-      try { localStorage.setItem(`quiz-player-${code}`, JSON.stringify(memoryCredentials)); } catch { showToast('Bitte diese Seite geöffnet lassen; der Browser speichert deinen Zugang nicht.'); }
+      try { localStorage.setItem(`quiz-player-${code}`, JSON.stringify(memoryCredentials)); } catch { /* This tab retains the credentials. */ }
       history.replaceState(null, '', `/?code=${code}`); receive(result.state);
     } catch (error) { $('#form-error').textContent = error.message; button.disabled = false; }
-    finally { requestPending = false; }
+    finally { pending = false; }
   });
 }
-function renderHostSetup() {
-  app.innerHTML = `<section class="narrow"><h1>Moderation</h1><p>${config.questionCount} aktive Fragen. <a href="/admin">Fragen verwalten</a></p><form id="host-form">
-    <label for="host-key">Moderationsschlüssel</label><input id="host-key" type="password" autocomplete="off" required placeholder="Aus dem Server-Terminal">
-    <label for="mode">Modus</label><select id="mode"><option value="learning-v1" ${config.learningCount?'selected':''} ${!config.learningCount?'disabled':''}>Stand-Challenge · Lernen ohne Punkte</option><option value="workshop-v1" ${!config.learningCount?'disabled':''}>Recherche-Werkstatt · zwei Urteile</option><option value="speed-streak-v2" ${!config.learningCount?'selected':''}>Quiz mit Punkten und Tempo</option></select>
-    <label for="case-set">Fallset</label><select id="case-set">${config.sets.map(s=>`<option value="${s.id}" ${!s.available?'disabled':''}>${escape(s.title)}</option>`).join('')}<option value="custom">Alle freigegebenen eigenen Lernfälle</option></select>
-    <label for="audience">Zielgruppe</label><select id="audience"><option value="sek1">Sek I</option><option value="sek2">Sek II / Berufsbildung</option><option value="adults">Eltern / Fachpersonen</option></select>
-    <label for="duration">Antwortzeit pro Frage</label><select id="duration"></select>
-    <label for="join-base">Adresse für die Handys</label><input id="join-base" type="url" list="local-addresses" required value="${escape(config.publicUrl || config.suggestedUrls[0] || location.origin)}"><datalist id="local-addresses">${config.suggestedUrls.map(url => `<option value="${escape(url)}">`).join('')}</datalist>
-    <p class="field-help">WLAN-Adresse des Laptops wählen. Handys und Laptop brauchen dasselbe erreichbare Netz.</p><button class="button primary" type="submit">Spielraum erstellen</button><p id="form-error" class="form-error" role="alert"></p></form><p class="field-help" id="mode-help"></p><p><a href="/materials">Unterlagen und PDF-Snapshot</a></p>${!config.learningCount?'<p class="field-help">Neue Lernfälle zuerst in der Fragenverwaltung über «Lernpaket importieren» ergänzen. Bestehende Fragen bleiben erhalten.</p>':''}</section>`;
-  function changeMode(){
-    const isQuiz=$('#mode').value==='speed-streak-v2';
-    $('#case-set').disabled=isQuiz;
-    $('#duration').innerHTML=(isQuiz?[15,20,25,30,45,60]:[25,30,45,60,75,90,120,180]).map(n=>`<option value="${n}" ${n===(isQuiz?25:75)?'selected':''}>${n} Sekunden</option>`).join('');
-    $('#mode-help').textContent=isQuiz?rules():'Zeitablauf schliesst nur die Eingabe. Ohne Tempo-/Serienpunkte und globale Rangliste; Auflösung durch die Moderation.';
-  }
-  $('#mode').addEventListener('change',changeMode); changeMode();
-  $('#audience').addEventListener('change',()=>{
-    if(!config.learningCount)return;
-    const presets={sek1:['learning-v1','stand-6'],sek2:['workshop-v1','werkstatt-4'],adults:['learning-v1','alltag-6']};
-    const [mode,set]=presets[$('#audience').value];
-    if(config.sets.find(s=>s.id===set)?.available){$('#mode').value=mode;$('#case-set').value=set;changeMode();}
-  });
+function setup() {
+  app.innerHTML = `<section class="narrow entry"><p class="eyebrow">GEMEINSAM RATEN</p><h1>Eine Runde starten.</h1><p>${config.questionCount} Bilder und Clips. Erst tippen, dann auflösen und kurz darüber reden.</p>
+    <form id="host-form"><label for="host-key">Moderationsschlüssel</label><input id="host-key" type="password" autocomplete="off" required>
+    <button class="button primary" type="submit">Spielraum erstellen</button><p id="form-error" class="form-error" role="alert"></p></form>
+    <p class="field-help">25 Sekunden zum Tippen. Fürs Gespräch bestimmst du das Tempo.</p></section>`;
   $('#host-form').addEventListener('submit', async event => {
     event.preventDefault(); const button = $('#host-form button'); button.disabled = true;
     try {
-      const response = await fetch('/api/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hostKey: $('#host-key').value, duration: Number($('#duration').value), joinBase: $('#join-base').value,mode:$('#mode').value,setId:$('#case-set').value,audience:$('#audience').value }) });
+      const response = await fetch('/api/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hostKey: $('#host-key').value, duration: 25, mode: 'simple-v1', joinBase: config.publicUrl || location.origin }) });
       const result = await response.json(); if (!response.ok) throw new Error(result.error);
       code = result.room; sessionStorage.setItem(`quiz-host-${code}`, result.hostToken);
       history.replaceState(null, '', `/host?code=${code}`);
       receive((await emit('watch', { room: code, hostToken: result.hostToken })).state);
-    } catch (error) { if ($('#form-error')) $('#form-error').textContent = error.message; button.disabled = false; }
+    } catch (error) { $('#form-error').textContent = error.message; button.disabled = false; }
   });
 }
-function hostToolbar() {
+function toolbar() {
   if (role !== 'host') return '';
-  const action = state.phase === 'lobby' ? 'start' : state.phase === 'question' ? 'reveal' : state.phase === 'reveal' ? 'next' : null;
-  const label = state.phase === 'lobby' ? 'Quiz starten' : state.phase === 'question' ? 'Jetzt auflösen' : state.index + 1 === state.total ? 'Ergebnis zeigen' : 'Nächste Frage';
-  return `<div class="host-toolbar"><span>${state.playerCount} Personen · ${state.answeredCount} Antworten</span><div class="toolbar-buttons"><a href="/screen?code=${code}" target="_blank" rel="noopener">Beamer öffnen</a><a href="/materials" target="_blank" rel="noopener">Unterlagen</a>${action ? `<button class="button primary" id="host-action" data-action="${action}" ${state.phase === 'lobby' && !state.playerCount ? 'disabled' : ''}>${label}</button>` : '<a class="button primary" href="/host">Neue Gruppe</a>'}</div></div>`;
+  const action = ({ lobby: 'start', question: 'reveal', reveal: 'next' })[state.phase];
+  const label = state.phase === 'lobby' ? 'Quiz starten' : state.phase === 'question' ? 'Auflösen' : state.index + 1 === state.total ? 'Ergebnis zeigen' : 'Nächste Runde';
+  return `<div class="host-toolbar"><span data-live-count aria-live="polite">${state.playerCount} Personen · ${state.answeredCount} Antworten</span><div class="toolbar-buttons"><a href="/screen?code=${code}" target="_blank" rel="noopener">Beamer öffnen ↗</a>${action ? `<button class="button primary" id="host-action" data-action="${action}" ${state.phase === 'lobby' && !state.playerCount ? 'disabled' : ''}>${label}</button>` : '<a class="button primary" href="/host">Neue Gruppe</a>'}</div></div>`;
 }
-function renderLobby() {
-  const isPlayer = role === 'player';
-  return `<section class="lobby"><h1>${isPlayer ? `Hallo, ${escape(state.me?.nickname)}.` : 'Mitmachen'}</h1>${isPlayer ? '<h2>Dein Platz ist reserviert.</h2><p>Die Moderation startet gleich.</p>' : `<div class="qr-block"><img class="qr" src="/api/qr?url=${encodeURIComponent(state.joinUrl)}" alt="QR-Code zum Beitreten"><div><p>Spielcode</p><span class="game-code">${code}</span><p class="join-url">${escape(state.joinUrl)}</p></div></div>`}
-    <p>${state.total} Fragen · ${state.duration} Sekunden pro Frage</p><p class="field-help">${rules()}</p><h2>Schon dabei (${state.playerCount})</h2><div class="player-chips">${state.players.map(p => `<span>${escape(p.nickname)}</span>`).join('') || '<p>Noch niemand beigetreten.</p>'}</div></section>`;
+function lobby() {
+  const player = role === 'player';
+  return `<section class="lobby"><p class="eyebrow">${state.total} RUNDEN · ETWA 10 MINUTEN</p><h1>${player ? `Hallo, ${esc(state.me?.nickname)}.` : 'Handy raus. Mitraten.'}</h1>${player ? '<h2>Dein Platz ist reserviert.</h2><p>Gleich gehts los.</p>' : `<div class="qr-block"><img class="qr" src="/api/qr?url=${encodeURIComponent(state.joinUrl)}" alt="QR-Code zum Beitreten"><div><p>Spielcode</p><span class="game-code">${code}</span><p class="join-url">${esc(state.joinUrl)}</p></div></div>`}
+    <p>Echt aufgenommen oder mit KI gemacht?</p><h2 data-player-heading>Schon dabei (${state.playerCount})</h2><div class="player-chips">${state.players.map(p => `<span>${esc(p.nickname)}</span>`).join('')}</div></section>`;
 }
-const originLabel = answer => answer === 'ai' ? 'Mit KI erzeugt' : 'Ohne generative KI';
-// Auflösung in Etappen: Gruppenvotum → Antwort → Erklärung → Merksatz → Punkte. Zeitpunkte stehen in style.css (.at-*),
-// weil die Content-Security-Policy keine style-Attribute erlaubt.
-const stage = step => `stage at-${step}`;
-function originStamp() {
-  if (state.phase !== 'reveal' || !state.reveal) return '';
-  return `<span class="origin-stamp at-answer ${state.reveal.answer}" aria-hidden="true">${originLabel(state.reveal.answer)}</span>`;
-}
-function questionMedia() {
+function media() {
   const q = state.question;
-  if (q.type === 'text') return `<div class="text-example"><p>${escape(q.text)}</p>${originStamp()}</div>`;
-  return `<div class="image-example ${q.type === 'poster' ? 'poster-example' : ''}"><div class="media-frame"><img src="${q.image}" alt="${escape(q.alt)}">${originStamp()}</div><p class="image-error" hidden>Bild nicht geladen. Bitte Verbindung prüfen.</p></div>`;
-}
-function voteSplit(r) {
-  const count = choice => r.votes.find(v => v.choice === choice)?.n || 0;
-  const human = count('human'), ai = count('ai'), total = human + ai;
-  if (!total) return `<p class="vote-label ${stage("votes")}">Niemand aus der Gruppe hat abgestimmt.</p>`;
-  const share = n => Math.round(n / total * 100);
-  const segment = (choice, n) => n ? `<span class="vote-segment ${choice === r.answer ? 'is-correct' : 'is-wrong'}" data-share="${n / total * 100}"></span>` : '';
-  return `<div class="vote-split" role="img" aria-label="Gruppe: ${human} ohne generative KI, ${ai} mit KI erzeugt"><p class="vote-label">So hat die Gruppe getippt</p>
-    <div class="vote-bar">${segment('human', human)}${segment('ai', ai)}</div>
-    <div class="vote-legend"><span>Ohne generative KI · ${share(human)} %</span><span>${share(ai)} % · Mit KI erzeugt</span></div></div>`;
+  const content = q.type === 'video'
+    ? `<video src="${q.video}" autoplay muted loop playsinline controls preload="auto" aria-label="Quizvideo"></video>`
+    : `<img src="${q.image}" alt="Quizbild – echt aufgenommen oder KI-generiert?">`;
+  return `<div class="quiz-media">${content}<p class="media-error" hidden>Das Medium lädt nicht. Bitte nochmals laden.</p></div>`;
 }
 function choices() {
   if (state.phase !== 'question') return '';
-  if (role !== 'player') return `<p class="audience-prompt">Auf dem Handy abstimmen · ${state.answeredCount} / ${state.playerCount} Antworten</p>`;
-  const answer = state.me?.answer;
-  return `<div class="answer-area"><div class="answer-buttons"><button class="answer-button ${answer?.choice === 'human' ? 'selected' : ''}" data-choice="human" ${answer ? 'disabled' : ''}>Ohne generative KI ${answer?.choice === 'human' ? '✓' : ''}</button><button class="answer-button ${answer?.choice === 'ai' ? 'selected' : ''}" data-choice="ai" ${answer ? 'disabled' : ''}>Mit KI erzeugt ${answer?.choice === 'ai' ? '✓' : ''}</button></div><p class="field-help">${answer ? 'Deine Antwort ist gespeichert' : 'Eine Antwort pro Frage. Schnell und richtig gibt mehr Punkte.'}</p></div>`;
+  if (role !== 'player') return '<p class="audience-prompt" data-vote-count></p>';
+  return `<div class="answer-area"><div class="answer-buttons"><button class="answer-button" data-choice="human">Echt</button><button class="answer-button" data-choice="ai">KI</button></div><p class="field-help" id="answer-status" aria-live="polite"></p></div>`;
 }
-function revealBlock() {
-  const r = state.reveal, a = state.me?.answer;
-  if (!r || state.phase !== 'reveal') return '';
-  const player = role === 'player';
-  const verdict = player && a ? `<p class="verdict ${a.choice === r.answer ? 'hit' : 'miss'} ${stage("answer")}">${a.choice === r.answer ? 'Richtig getippt.' : 'Daneben getippt.'}</p>` : '';
-  const points = player ? `<div class="${stage("points")}"><p class="result-pill">${a ? a.points ? `+ ${number(a.points)} Punkte` : 'Diesmal kein Treffer' : 'Nicht abgestimmt'}</p>${a ? `<p class="score-breakdown">${number(a.base)} Basis + ${a.speed} Tempo + ${a.series} Serie · Antwort nach ${seconds(a.elapsedMs)}${a.streak ? ` · ${a.streak} richtig in Folge` : ''}</p>` : ''}</div>` : '';
-  return `<section class="reveal-block">${voteSplit(r)}<h2 class="reveal-answer ${stage("answer")}">${originLabel(r.answer)}.</h2>${verdict}<p class="${stage("explanation")}">${escape(r.explanation)}</p><p class="takeaway ${stage("takeaway")}">${escape(r.takeaway)}</p>${points}<p class="source-credit ${stage("points")}">${escape(r.credit)} · ${escape(r.license)}<br><a href="${escape(r.source)}" target="_blank" rel="noopener noreferrer">Herkunft nachprüfen</a></p></section>`;
+function reveal() {
+  if (state.phase !== 'reveal') return '';
+  const r = state.reveal, answer = state.me?.answer;
+  const votes = choice => r.votes.find(v => v.choice === choice)?.n || 0;
+  return `<section class="simple-reveal"><div><p class="eyebrow">DIE AUFLÖSUNG</p><h2 class="reveal-answer">${originLabel(r.answer)}.</h2>${role === 'player' ? `<p class="verdict">${!answer ? 'Diesmal nicht abgestimmt.' : answer.choice === r.answer ? 'Richtig getippt!' : 'Überraschung! Diesmal daneben.'}</p>` : ''}</div>
+    <p class="group-votes">${votes('human')} tippten auf Echt · ${votes('ai')} auf KI</p><p class="talk-prompt">Was hat euch überzeugt – und was hat euch getäuscht?</p></section>`;
 }
-function leaderboardTable(entries, meId) {
-  if (!entries.length) return '<p class="empty-state">Noch keine vollständigen Ergebnisse.</p>';
-  return `<table class="leaderboard-table"><caption class="sr-only">Rangliste nach Punkten</caption><thead><tr><th>Rang</th><th>Spitzname</th><th>Punkte</th></tr></thead><tbody>${entries.map(p => `<tr class="${p.id === meId ? 'my-row' : ''}"><td>${p.rank}${p.movement ? `<small class="movement">${p.movement > 0 ? '↑' : '↓'}${Math.abs(p.movement)}</small>` : ''}</td><th scope="row">${escape(p.nickname)}${p.id === meId ? ' (du)' : ''}<small>${p.correct}/${state?.total || p.answered} richtig · Ø ${seconds(p.avgMs)} · Serie ${p.bestStreak}</small></th><td>${number(p.score)}</td></tr>`).join('')}</tbody></table>`;
+function question() {
+  return `<section class="quiz-section ${state.phase === 'reveal' ? 'is-reveal' : ''}"><div class="question-top"><div><p class="eyebrow">RUNDE ${state.index + 1} / ${state.total} · ${state.question.type === 'video' ? 'VIDEO' : 'BILD'}</p><h1>Echt oder KI?</h1></div>${state.phase === 'question' ? '<div class="timer" role="timer" aria-label="Verbleibende Antwortzeit"><span id="seconds">–</span><small>Sek.</small></div>' : ''}</div>${media()}${choices()}${reveal()}</section>`;
 }
-function renderQuestion() {
-  return `<section class="quiz-section ${state.phase === 'reveal' ? 'is-reveal' : ''}"><div class="question-top"><div><p class="eyebrow">Frage ${state.index + 1} / ${state.total} · ${typeLabel(state.question.type)}</p><h1>${escape(state.question.title)}</h1></div>${state.phase === 'question' ? '<div class="timer" role="timer" aria-label="Verbleibende Antwortzeit"><span id="seconds">–</span><small>Sek.</small></div>' : '<span class="phase-pill">Auflösung</span>'}</div><div class="progress-track"><div id="progress-fill"></div></div>${questionMedia()}${choices()}${revealBlock()}${state.phase === 'reveal' ? `<section class="round-ranking ${stage("ranking")}"><h2>Zwischenstand</h2>${leaderboardTable(state.leaderboard, state.me?.id)}</section>` : ''}</section>`;
-}
-function renderFinished() {
+function finished() {
   const me = state.leaderboard.find(p => p.id === state.me?.id);
-  return `<section class="results"><h1>Ergebnis</h1>${me ? `<p class="personal-result">${me.correct} von ${state.total} erkannt. ${number(me.score)} Punkte. Rang ${me.rank}.</p>` : ''}<h2>Diese Gruppe</h2>${leaderboardTable(state.leaderboard, state.me?.id)}<section class="overall"><h2>Stand-Rangliste</h2><p class="field-help">Dasselbe Fragenset und ${state.duration} Sekunden Antwortzeit pro Frage.</p>${leaderboardTable(state.globalLeaderboard, state.me?.id)}</section><p class="field-help">Reihenfolge: Punkte, Treffer, dann durchschnittliche Zeit richtiger Antworten. «Serie» zeigt die längste Trefferfolge. Gleiche Werte teilen sich den Rang.</p></section>`;
+  return `<section class="results"><p class="eyebrow">DAS WARS!</p><h1>Und? Überrascht?</h1>${me ? `<p class="personal-result">${me.correct} von ${state.total} richtig.</p>` : ''}<p class="talk-prompt">Bei welchem Bild oder Clip wart ihr euch ganz sicher – und lagt daneben?</p>
+    <h2>Eure Treffer</h2><table class="leaderboard-table"><thead><tr><th>Spitzname</th><th>Richtig</th></tr></thead><tbody>${state.leaderboard.map(p => `<tr class="${p.id === me?.id ? 'my-row' : ''}"><th scope="row">${esc(p.nickname)}</th><td>${p.correct} / ${state.total}</td></tr>`).join('')}</tbody></table></section>`;
 }
-// Jede Stimme oder Wiederverbindung rendert neu. Damit die Etappen nicht von vorne beginnen,
-// laufen die Animationen ab dem Beginn der Phase weiter (--elapsed verschiebt animation-delay).
-let phaseKey, phaseStart;
-function syncPhaseClock() {
-  const key = `${state.room}:${state.phase}:${state.index}`;
-  if (key !== phaseKey) { phaseKey = key; phaseStart = performance.now() - Math.max(0,Date.now()+serverOffset-(state.phaseStartedAt || Date.now()+serverOffset)); }
-  app.style.setProperty('--elapsed', `${((performance.now() - phaseStart) / 1000).toFixed(3)}s`);
-}
-function renderState() {
-  document.body.classList.toggle('screen-mode', role === 'screen');
-  document.body.classList.toggle('learning-mode',learning());
-  const key=`${state.room}:${state.mode}:${state.phase}:${state.index}:${state.revealStep || 0}:${state.me?.id || role}`;
-  if(key===renderedKey){patchLiveState();updateClock();return;}
-  renderedKey=key;
-  syncPhaseClock();
-  app.innerHTML = learning()?window.LearningUI.render(state,role):hostToolbar() + (state.phase === 'lobby' ? renderLobby() : state.phase === 'finished' ? renderFinished() : renderQuestion());
-  document.querySelectorAll('[data-share]').forEach(el => el.style.setProperty('--share', `${el.dataset.share}%`));
-  document.querySelectorAll('.image-example img').forEach(img => img.addEventListener('error', () => { img.hidden = true; const error=img.closest('.image-example').querySelector('.image-error');if(error)error.hidden=false; }));
-  document.querySelector('[data-zoom]')?.addEventListener('click',event=>event.currentTarget.classList.toggle('zoomed'));
-  async function hostAction(event) {
-    if (requestPending) return;
-    requestPending = true; const button = event.currentTarget; button.disabled = true;
-    try { await emit('host:action', { action: button.dataset.action,...(learning()?{commandId:commandId(),expectedRevision:state.revision,expectedPhase:state.phase,expectedIndex:state.index}:{}) }); }
-    catch (error) { showToast(error.message); button.disabled = false; }
-    finally { requestPending = false; }
+function patch() {
+  const count = $('[data-live-count]'); if (count) count.textContent = `${state.playerCount} Personen · ${state.answeredCount} Antworten`;
+  const vote = $('[data-vote-count]'); if (vote) vote.textContent = `Auf dem Handy tippen · ${state.answeredCount} / ${state.playerCount} Antworten`;
+  if (state.phase === 'lobby') {
+    if ($('.player-chips')) $('.player-chips').innerHTML = state.players.map(p => `<span>${esc(p.nickname)}</span>`).join('');
+    if ($('[data-player-heading]')) $('[data-player-heading]').textContent = `Schon dabei (${state.playerCount})`;
+    if ($('#host-action')) $('#host-action').disabled = !state.playerCount;
   }
-  $('#host-action')?.addEventListener('click',hostAction);
-  $('#skip-case')?.addEventListener('click',hostAction);
+  document.querySelectorAll('[data-choice]').forEach(button => {
+    button.disabled = !!state.me?.answer;
+    button.classList.toggle('selected', button.dataset.choice === state.me?.answer?.choice);
+  });
+  if ($('#answer-status')) $('#answer-status').textContent = state.me?.answer ? 'Deine Antwort ist gespeichert.' : 'Was sagt dein Bauchgefühl?';
+}
+function render() {
+  document.body.classList.toggle('screen-mode', role === 'screen');
+  const key = `${state.room}:${state.phase}:${state.index}:${state.me?.id || role}`;
+  if (key === renderedKey) { patch(); return; }
+  renderedKey = key;
+  app.innerHTML = toolbar() + (state.phase === 'lobby' ? lobby() : state.phase === 'finished' ? finished() : question());
+  patch();
+  document.querySelectorAll('.quiz-media img,.quiz-media video').forEach(el => el.addEventListener('error', () => { $('.media-error').hidden = false; }));
+  const video = $('.quiz-media video'); if (video) video.play().catch(() => { /* Native play controls remain available. */ });
+  $('#host-action')?.addEventListener('click', async event => {
+    if (pending) return; pending = true; const button = event.currentTarget; button.disabled = true;
+    try { await emit('host:action', { action: button.dataset.action }); }
+    catch (error) { notify(error.message); button.disabled = false; }
+    finally { pending = false; }
+  });
   document.querySelectorAll('[data-choice]').forEach(button => button.addEventListener('click', async () => {
-    if (requestPending) return;
-    requestPending = true;
+    if (pending) return; pending = true;
     document.querySelectorAll('[data-choice]').forEach(b => { b.disabled = true; });
-    try { await emit('answer', { questionId: state.question.id, choice: button.dataset.choice,...(learning()?{promptId:'main',stage:state.phase==='final_vote'?'final':'first',confidence:$('#confidence')?.value?Number($('#confidence').value):null}:{}) }); }
-    catch (error) { showToast(error.message); patchLiveState(); }
-    finally { requestPending = false; }
+    try { await emit('answer', { questionId: state.question.id, choice: button.dataset.choice }); }
+    catch (error) { notify(error.message); patch(); }
+    finally { pending = false; }
   }));
 }
-function patchLiveState(){
-  const count=document.querySelector('[data-live-count]') || document.querySelector('.host-toolbar>span');
-  if(count)count.textContent=`${state.playerCount} Personen · ${state.answeredCount} Antworten`;
-  const vote=document.querySelector('[data-vote-count]') || document.querySelector('.audience-prompt');
-  if(vote)vote.textContent=`Auf dem Handy abstimmen · ${state.answeredCount} / ${state.playerCount} Antworten`;
-  if(state.phase==='lobby'){
-    const chips=document.querySelector('.player-chips');if(chips)chips.innerHTML=state.players.map(p=>`<span>${escape(p.nickname)}</span>`).join('');
-    const heading=document.querySelector('[data-player-heading]');if(heading)heading.textContent=`Schon dabei (${state.playerCount})`;
-    const start=$('#host-action');if(start)start.disabled=!state.playerCount;
-  }
-  document.querySelectorAll('[data-choice]').forEach(button=>{button.disabled=!!state.me?.answer||!!state.votingClosed;button.classList.toggle('selected',state.me?.answer?.choice===button.dataset.choice);});
-  const confidence=$('#confidence');if(confidence&&state.me?.answer)confidence.disabled=true;
-  const status=$('#answer-status') || document.querySelector('.answer-area .field-help');
-  if(status)status.textContent=state.me?.answer?'Deine Antwort ist gespeichert':state.votingClosed?'Eingabe geschlossen. Die Moderation führt weiter.':learning()?'Dein eigener Eindruck zählt. Noch keine Mehrheitsanzeige.':'Eine Antwort pro Frage. Schnell und richtig gibt mehr Punkte.';
-}
 function updateClock() {
-  if (!['question','first_vote','final_vote'].includes(state?.phase)) return;
-  const left = Math.max(0, state.deadline - (Date.now() + serverOffset));
+  if (state?.phase !== 'question') return;
+  const left = Math.max(0, state.deadline - Date.now() - serverOffset);
   if ($('#seconds')) $('#seconds').textContent = Math.ceil(left / 1000);
-  if ($('#progress-fill')) $('#progress-fill').style.width = `${left / (state.duration * 1000) * 100}%`;
-  $('.timer')?.classList.toggle('urgent', left < 6000);
-  if (!left) document.querySelectorAll('[data-choice]').forEach(b => { b.disabled = true; });
-}
-async function renderGlobalLeaderboard() {
-  try {
-    const response = await fetch(`/api/leaderboard?duration=${boardDuration}`), result = await response.json();
-    if (!response.ok) throw new Error(result.error);
-    app.innerHTML = `<section class="results"><h1>Stand-Rangliste</h1><label for="board-duration">Antwortzeit pro Frage</label><select id="board-duration">${[15, 20, 25, 30, 45, 60].map(n => `<option value="${n}" ${n === boardDuration ? 'selected' : ''}>${n} Sekunden</option>`).join('')}</select><p class="field-help">${result.totalQuestions} aktive Fragen. Nur vollständige Runden mit demselben Fragenset, derselben Antwortzeit und Wertung.</p>${leaderboardTable(result.entries)}<p class="field-help">Ø = Zeit richtiger Antworten · Serie = längste Trefferfolge</p><a href="/">Zum Quiz</a></section>`;
-    $('#board-duration').addEventListener('change', event => { boardDuration = Number(event.target.value); renderGlobalLeaderboard(); });
-  } catch (error) { showToast(error.message); }
+  if (!left) document.querySelectorAll('[data-choice]').forEach(button => { button.disabled = true; });
 }
 async function init() {
   try {
     config = await (await fetch('/api/config')).json();
-    if (location.pathname === '/leaderboard') { await renderGlobalLeaderboard(); setInterval(renderGlobalLeaderboard, 10000); }
-    else if (role === 'host') renderHostSetup();
-    else if (role === 'screen') app.innerHTML = '<section class="narrow"><h1>Beamer</h1><p>Diese Ansicht über «Beamer öffnen» in der Moderation starten.</p></section>';
-    else renderLanding();
+    if (role === 'host') setup();
+    else if (role === 'screen') app.innerHTML = '<section class="narrow"><h1>Beamer</h1><p>In der Moderation «Beamer öffnen» wählen.</p></section>';
+    else landing();
     socket.connect();
-  } catch { app.innerHTML = '<section class="narrow"><h1>Keine Verbindung</h1><p>Bitte prüfen, ob der Quiz-Server läuft, und die Seite neu laden.</p></section>'; }
+  } catch { app.innerHTML = '<section class="narrow"><h1>Keine Verbindung</h1><p>Bitte die Seite nochmals laden.</p></section>'; }
 }
 setInterval(updateClock, 200);
 init();

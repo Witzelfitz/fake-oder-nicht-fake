@@ -4,21 +4,15 @@
   "private": true,
   "type": "module",
   "description": "Live-Medienquiz für den Digimärt Alpnach – Socket.IO und SQLite",
-  "engines": { "node": ">=24.14.0 <25" },
+  "engines": {
+    "node": ">=24.14.0 <25"
+  },
   "scripts": {
     "start": "node --env-file-if-exists=.env server/index.js",
     "dev": "node --env-file-if-exists=.env --watch server/index.js",
     "test": "node --test --test-concurrency=1 test/*.test.js",
     "test:e2e": "playwright test",
     "check": "node scripts/check-content.js",
-    "docs:export": "node scripts/build-pdfs.js",
-    "publication:snapshot": "node --env-file-if-exists=.env scripts/publication-snapshot.js",
-    "content:import": "node --env-file-if-exists=.env scripts/import-cases.js",
-    "pdf:build": "node scripts/build-pdfs.js",
-    "pdf:check": "python scripts/pdf-tools.py",
-    "pdf:qr:test": "node scripts/check-session-poster.js",
-    "pdf:fixtures": "node scripts/check-pdf-fixtures.js",
-    "screenshots": "node --env-file-if-exists=.env scripts/export-screenshots.js",
     "verify": "npm run check && npm test",
     "db:reset": "node --env-file-if-exists=.env scripts/reset-db.js"
   },

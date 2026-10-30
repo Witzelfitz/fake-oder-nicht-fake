@@ -25,6 +25,7 @@ const nickname = value => typeof value === 'string' ? value.normalize('NFKC').tr
 const fail = message => { throw new Error(message); };
 
 export function createQuizServer(options = {}) {
+  const legacy = options.legacy === true;
   const db = openDatabase(options.dbPath ?? './data/quiz.sqlite');
   const bank = questionBank(db, options.deck ?? loadDeck());
   const temporaryUploads = options.dbPath === ':memory:' && !options.uploadDir ? mkdtempSync(path.join(tmpdir(),'fake-quiz-uploads-')) : null;
@@ -39,7 +40,7 @@ export function createQuizServer(options = {}) {
     res.set({
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer',
-      'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+      'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' ws: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
       'Cache-Control': 'no-store'
     });
     next();
@@ -159,8 +160,8 @@ export function createQuizServer(options = {}) {
     if (!rate(`admin:${req.socket.remoteAddress}`, 300)) return res.status(429).json({ error: 'Zu viele Anfragen. Bitte kurz warten.' });
     next();
   };
-  installQuestionAdmin(app,{db,bank,uploadRoot,authenticate});
-  installMaterials(app,{db,bank,uploadRoot,authenticate});
+  installQuestionAdmin(app,{db,bank,uploadRoot,authenticate,legacy});
+  if (legacy) installMaterials(app,{db,bank,uploadRoot,authenticate});
 
   app.get('/api/config', (req, res) => {
     const port = http.address()?.port ?? 3000;
@@ -169,8 +170,8 @@ export function createQuizServer(options = {}) {
     const settings = readSettings(db);
     const availableIds = new Set(bank.learningDeck().questions.map(q => q.id));
     res.json({ title: deck.title, questionCount: deck.questions.length, publicUrl: publicUrl || null,
-      learningCount: availableIds.size, event: settings.event, defaultSet: settings.defaultSet,
-      sets: curatedPack().sets.map(set => ({ ...set, available: set.caseIds.every(id => availableIds.has(id)) })),
+      ...(legacy ? { learningCount: availableIds.size, event: settings.event, defaultSet: settings.defaultSet,
+      sets: curatedPack().sets.map(set => ({ ...set, available: set.caseIds.every(id => availableIds.has(id)) })) } : {}),
       suggestedUrls: [...new Set([...(publicUrl ? [publicUrl] : []), ...addresses, baseForRequest(req)])] });
   });
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
@@ -183,13 +184,15 @@ export function createQuizServer(options = {}) {
     if (!rate(`create:${req.socket.remoteAddress}`, 20)) return res.status(429).json({ error: 'Zu viele Versuche. Bitte kurz warten.' });
     if (!matches(req.body?.hostKey, hostHash)) return res.status(403).json({ error: 'Der Moderationsschlüssel stimmt nicht. Du findest ihn im Server-Terminal.' });
     const duration = Number(req.body.duration ?? 25);
-    const mode = req.body.mode ?? 'speed-streak-v2';
+    const mode = req.body.mode ?? 'simple-v1';
+    if (!legacy && mode !== 'simple-v1') return res.status(400).json({ error: 'Dieses Quiz verwendet nur Bilder und Videos.' });
     if (!MODES.includes(mode)) return res.status(400).json({ error: 'Unbekannter Spielmodus.' });
-    if (!(mode === 'speed-streak-v2' ? DURATIONS.includes(duration) : [25,30,45,60,75,90,120,180].includes(duration))) return res.status(400).json({ error: 'Ungültige Antwortzeit.' });
+    const quizMode = ['simple-v1', 'speed-streak-v2'].includes(mode);
+    if (!(quizMode ? DURATIONS.includes(duration) : [25,30,45,60,75,90,120,180].includes(duration))) return res.status(400).json({ error: 'Ungültige Antwortzeit.' });
     const set = curatedPack().sets.find(s => s.id === req.body.setId);
     let deck;
     try {
-      deck = mode === 'speed-streak-v2' ? bank.deck() : bank.learningDeck(req.body.caseIds ?? set?.caseIds ?? null);
+      deck = quizMode ? bank.deck() : bank.learningDeck(req.body.caseIds ?? set?.caseIds ?? null);
       if (isLearning({ mode })) for (const q of deck.questions) validateCase(q,true);
     } catch (error) { return res.status(400).json({ error: error.message }); }
     if (!deck.questions.length) return res.status(400).json({ error: 'Bitte zuerst mindestens eine Frage in der Fragenverwaltung aktivieren.' });
@@ -204,7 +207,7 @@ export function createQuizServer(options = {}) {
     do { id = String(randomInt(100000, 1000000)); } while (getRoom(id));
     const hostToken = token();
     db.prepare('INSERT INTO rooms (id,host_hash,created_at,duration,deck_id,deck_json,join_base,scoring_version,mode,schema_version,set_id,audience) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
-      .run(id,hash(hostToken),Date.now(),duration,deck.id,JSON.stringify(deck),base,mode === 'speed-streak-v2' ? SCORING_VERSION : 'learning-v1',mode,mode === 'speed-streak-v2' ? 1 : 3,mode==='speed-streak-v2'?'legacy':set?.id || 'custom',['sek1','sek2','adults'].includes(req.body.audience) ? req.body.audience : 'sek1');
+      .run(id,hash(hostToken),Date.now(),duration,deck.id,JSON.stringify(deck),base,mode === 'simple-v1' ? 'count-v1' : mode === 'speed-streak-v2' ? SCORING_VERSION : 'learning-v1',mode,quizMode ? 1 : 3,quizMode ? 'media-quiz' : set?.id || 'custom',['sek1','sek2','adults'].includes(req.body.audience) ? req.body.audience : 'sek1');
     res.status(201).json({ room: id, hostToken });
   });
   app.get('/api/qr', async (req, res, next) => {
@@ -227,7 +230,7 @@ export function createQuizServer(options = {}) {
   });
   // This decorative sample is a photo, not an answer key. No content directory is served.
   app.get('/sample', (_req, res) => res.set('Cache-Control', 'public, max-age=86400').sendFile(path.join(contentRoot, 'assets', 'mountain.jpg')));
-  for (const route of ['/materials','/stand.html']) app.get(route,(_req,res)=>res.sendFile(path.join(projectRoot,'public','materials.html')));
+  for (const route of ['/materials','/stand.html']) app.get(route,(_req,res)=>res.redirect('/host'));
   app.use(express.static(path.join(projectRoot, 'public')));
   app.get('/admin', (_req, res) => res.sendFile(path.join(projectRoot, 'public', 'admin.html')));
   for (const route of ['/host', '/screen', '/leaderboard']) app.get(route, (_req, res) => res.sendFile(path.join(projectRoot, 'public', 'index.html')));
@@ -305,6 +308,7 @@ export function createQuizServer(options = {}) {
       const previous = previousId ? getAnswer(socket.data.playerId, previousId) : null;
       const scored = scoreAnswer({ correct: data.choice === q.answer, elapsedMs: now - (room.started_at ?? room.deadline - room.duration * 1000), durationMs: room.duration * 1000, previousStreak: previous?.streak ?? 0 });
       if (room.scoring_version === 'classic-v1') Object.assign(scored, { points: data.choice === q.answer ? 1000 : 0, base: data.choice === q.answer ? 1000 : 0, speed: 0, series: 0, elapsedMs: null, streak: 0 });
+      if (room.mode === 'simple-v1') Object.assign(scored, { points: data.choice === q.answer ? 1 : 0, base: data.choice === q.answer ? 1 : 0, speed: 0, series: 0, elapsedMs: null, streak: 0 });
       db.prepare('INSERT INTO answers (player_id, question_id, choice, points, answered_at, elapsed_ms, base_points, speed_bonus, streak_bonus, streak) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
         .run(socket.data.playerId, q.id, data.choice, scored.points, now, scored.elapsedMs, scored.base, scored.speed, scored.series, scored.streak);
       done({ accepted: true });
@@ -337,7 +341,7 @@ export function createQuizServer(options = {}) {
     });
   });
   app.use((error, _req, res, _next) => {
-    if (error.type === 'entity.too.large') return res.status(413).json({ error: 'Datei oder Anfrage zu gross. Bilder: maximal 12 MB.' });
+    if (error.type === 'entity.too.large') return res.status(413).json({ error: 'Datei oder Anfrage zu gross. Medien: maximal 20 MB.' });
     if (error instanceof SyntaxError) return res.status(400).json({ error: 'Ungültige Anfrage.' });
     console.error(error.message);
     res.status(500).json({ error: 'Serverfehler. Bitte die Moderation informieren.' });

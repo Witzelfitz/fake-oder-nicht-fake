@@ -14,7 +14,7 @@ const deck = { id: 'integration-v1', title: 'Test', questions: [
 ] };
 const send = (socket, event, payload) => new Promise((resolve, reject) => socket.timeout(3000).emit(event, payload, (err, result) => err ? reject(err) : resolve(result)));
 async function fixture(t, options = {}) {
-  const server = createQuizServer({ deck, dbPath: ':memory:', hostKey: 'test-host-secret', ...options });
+  const server = createQuizServer({ legacy: true, deck, dbPath: ':memory:', hostKey: 'test-host-secret', ...options });
   await server.listen(0, '127.0.0.1');
   const base = `http://127.0.0.1:${server.http.address().port}`;
   const sockets = [];
@@ -26,7 +26,7 @@ async function fixture(t, options = {}) {
     sockets.push(socket); await once(socket, 'connect'); return socket;
   }
   async function room() {
-    const response = await fetch(`${base}/api/rooms`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hostKey: 'test-host-secret', duration: 15 }) });
+    const response = await fetch(`${base}/api/rooms`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hostKey: 'test-host-secret', duration: 15, mode: 'speed-streak-v2' }) });
     assert.equal(response.status, 201); return response.json();
   }
   async function host(roomInfo) {
@@ -47,9 +47,10 @@ async function fixture(t, options = {}) {
 
 test('das echte Fragenset enthält alle Medien, beide Herkunftstypen und vorhandene Assets', () => {
   const loaded = loadDeck();
-  assert.equal(loaded.questions.length, 8);
-  assert.deepEqual(new Set(loaded.questions.map(q => q.type)), new Set(['photo', 'text', 'poster']));
-  assert.equal(loaded.questions.filter(q => q.answer === 'ai').length, 4);
+  assert.equal(loaded.questions.length, 10);
+  assert.deepEqual(new Set(loaded.questions.map(q => q.type)), new Set(['photo', 'video']));
+  assert.equal(loaded.questions.filter(q => q.answer === 'ai').length, 5);
+  assert.equal(loaded.questions.filter(q => q.type === 'video').length, 4);
 });
 
 test('HTTP schützt Moderation, validiert Eingaben und liefert lokale Assets sowie QR ohne externe Dienste', async t => {

@@ -32,7 +32,8 @@ function cleanQuestion(body, id) {
   const text = (key, fallback = '') => typeof body[key] === 'string' ? body[key].trim() : fallback;
   const q = {
     id, type: body.type, title: text('title'), answer: body.answer,
-    explanation: text('explanation'), takeaway: text('takeaway', 'Quelle und Kontext prüfen.') || 'Quelle und Kontext prüfen.',
+    explanation: body.explanation === undefined ? (body.answer === 'ai' ? 'Mit KI erzeugt.' : 'Echt aufgenommen.') : text('explanation'),
+    takeaway: text('takeaway') || 'Was hat euch überzeugt – und was hat euch getäuscht?',
     source: text('source') || '/sources.html#eigene-inhalte', credit: text('credit') || 'Eigenes Material der Moderation',
     license: text('license') || 'Nutzungsangaben bei der Moderation erfragen.'
   };
@@ -53,12 +54,18 @@ function imageExtension(bytes) {
   if (bytes.length >= 24 && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) && bytes.toString('ascii', 12, 16) === 'IHDR') return 'png';
   if (bytes.length > 16 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return 'jpg';
   if (bytes.length > 16 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP') return 'webp';
+  if (bytes.length > 24 && bytes.toString('ascii', 4, 8) === 'ftyp' && /^(isom|iso[2-9]|mp4[12]|avc1)/.test(bytes.toString('ascii', 8, 12))) return 'mp4';
   return null;
 }
 
-export function installQuestionAdmin(app, { db, bank, uploadRoot, authenticate }) {
+export function installQuestionAdmin(app, { db, bank, uploadRoot, authenticate, legacy = false }) {
   const router = express.Router();
   router.use(authenticate);
+  router.use((req, res, next) => {
+    if (!legacy && !/^\/(questions(?:\/|$)|media$|order$)/.test(req.path)) return res.sendStatus(404);
+    if (!legacy && ['POST', 'PUT'].includes(req.method) && req.path.startsWith('/questions') && (!['photo', 'video'].includes(req.body?.type) || req.body?.schemaVersion === 3)) return res.status(400).json({ error: 'Bitte ein Bild oder Video wählen.' });
+    next();
+  });
   router.get('/questions', (_req, res) => res.json({ questions: bank.entries() }));
   router.get('/settings', (_req,res) => res.json(readSettings(db)));
   router.put('/settings', (req,res) => { try { res.json(writeSettings(db,req.body ?? {})); } catch (error) { res.status(400).json({error:error.message}); } });
@@ -112,9 +119,9 @@ export function installQuestionAdmin(app, { db, bank, uploadRoot, authenticate }
     catch (error) { db.exec('ROLLBACK'); throw error; }
     res.json({ questions: bank.entries() });
   });
-  router.post('/media', express.raw({ type: () => true, limit: '12mb' }), (req, res) => {
+  router.post('/media', express.raw({ type: () => true, limit: '20mb' }), (req, res) => {
     const ext = imageExtension(req.body);
-    if (!ext) return res.status(400).json({ error: 'Bitte ein PNG-, JPEG- oder WebP-Bild hochladen.' });
+    if (!ext) return res.status(400).json({ error: 'Bitte ein Bild (PNG, JPEG, WebP) oder ein MP4-Video hochladen.' });
     mkdirSync(uploadRoot, { recursive: true });
     const name = `${randomBytes(16).toString('hex')}.${ext}`;
     const asset = `upload:${name}`;

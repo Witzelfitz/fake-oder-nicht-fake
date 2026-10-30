@@ -1,4 +1,4 @@
-export const MODES = ['learning-v1', 'workshop-v1', 'speed-streak-v2'];
+export const MODES = ['simple-v1', 'learning-v1', 'workshop-v1', 'speed-streak-v2'];
 export const AXES = {
   origin: [{ id: 'ai', label: 'Mit generativer KI' }, { id: 'human', label: 'Ohne generative KI' }, { id: 'insufficient', label: 'Mit diesen Infos nicht sicher' }],
   claim: [{ id: 'supported', label: 'Belegt' }, { id: 'refuted', label: 'Widerlegt' }, { id: 'open', label: 'Noch offen' }],

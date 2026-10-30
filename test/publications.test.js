@@ -9,7 +9,7 @@ import { renderDocument } from '../documents/render.js';
 import { readSettings, writeSettings, purgeExpired } from '../server/settings.js';
 import path from 'node:path';
 
-function setup(t){const server=createQuizServer({dbPath:':memory:',hostKey:'pub-test'});t.after(()=>server.close());applyImport(server.db);return {server,db:server.db,bank:questionBank(server.db,loadDeck())};}
+function setup(t){const server=createQuizServer({ legacy: true,dbPath:':memory:',hostKey:'pub-test'});t.after(()=>server.close());applyImport(server.db);return {server,db:server.db,bank:questionBank(server.db,loadDeck())};}
 function edit(db,id,change){const row=db.prepare('SELECT question_json FROM question_bank WHERE id=?').get(id);const q=JSON.parse(row.question_json);change(q);db.prepare('UPDATE question_bank SET question_json=?,version=version+1 WHERE id=?').run(JSON.stringify(q),id);}
 test('Publikation verwendet SQLite-Fassung, ist unveränderlich und trennt Teilnehmerfelder',async t=>{
   const {server,db,bank}=setup(t);
@@ -62,7 +62,7 @@ test('Anlassprofile sind geschützt und wiederherstellbar; Löschfrist entfernt 
   db.prepare('UPDATE rooms SET created_at=? WHERE id=?').run(Date.now()-10*86400000,rooms[1].room);
   db.prepare("UPDATE rooms SET phase='finished' WHERE id=?").run(rooms[2].room);
   assert.equal(purgeExpired(db),0);writeSettings(db,{...readSettings(db),retentionDays:7});assert.equal(purgeExpired(db),1);
-  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM rooms').get().n,2);assert.equal(db.prepare('SELECT COUNT(*) AS n FROM question_bank').get().n,20);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM rooms').get().n,2);assert.equal(db.prepare('SELECT COUNT(*) AS n FROM question_bank').get().n,22);
 });
 test('Kerntoken erfüllen Textkontrast; Zustände werden zusätzlich beschriftet',()=>{
   const luminance=hex=>{const rgb=hex.match(/[0-9a-f]{2}/gi).map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;};

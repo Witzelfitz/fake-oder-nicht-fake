@@ -1,82 +1,126 @@
 {
   "title": "Fake oder nicht fake?",
-  "version": 1,
+  "version": 2,
   "questions": [
     {
-      "id": "q01", "type": "photo", "title": "Ein Ausblick zum Staunen.",
-      "asset": "assets/mountain.jpg", "answer": "human",
-      "explanation": "Dieses Panorama vom Fronalpstock wurde von Hannes Röst fotografiert und 2010 veröffentlicht. Es besteht aus zwölf zusammengefügten Aufnahmen. Das ist digitale Bildbearbeitung, aber keine generative KI.",
-      "takeaway": "Ein bearbeitetes Foto ist nicht automatisch KI-generiert. Frage nach Aufnahme, Bearbeitung und Herkunft.",
-      "source": "https://commons.wikimedia.org/wiki/File:Fronalpstock_big.jpg",
-      "credit": "Hannes Röst · Fronalpstock · 2010 · verkleinerte Commons-Vorschau, Motiv unverändert",
-      "license": "CC BY-SA 3.0 · https://creativecommons.org/licenses/by-sa/3.0/"
-    },
-    {
-      "id": "q02", "type": "text", "title": "Klingt nach einem guten Plan.",
-      "text": "Am Samstag wird unser Dorfplatz zur Ideenwerkstatt. Bring ein altes Gerät, eine neugierige Frage oder einfach Zeit mit. Gemeinsam reparieren, tüfteln und entdecken wir, wie viel Zukunft schon in unserem Alltag steckt.",
-      "answer": "ai",
-      "explanation": "Diese Einladung wurde für das Quiz mit einem Sprachmodell geschrieben. Sie klingt nach einer gewöhnlichen Veranstaltungsankündigung, beschreibt aber keinen belegten realen Anlass.",
-      "takeaway": "Ein natürlicher Schreibstil beweist keine menschliche Urheberschaft. Prüfe bei Einladungen Datum, Veranstalter und Originalveröffentlichung.",
-      "source": "/sources.html#ki-beispiele",
-      "credit": "KI-Text · eigens für den Digimärt erstellt · fiktive Veranstaltung",
-      "license": "Quiz-Eigeninhalt; siehe content/provenance.json"
-    },
-    {
-      "id": "q03", "type": "poster", "title": "Ferien fürs Auge.",
-      "asset": "assets/alpine-poster.png", "answer": "ai",
-      "explanation": "Dieses Reiseplakat wurde für das Quiz mit dem integrierten Bildgenerator erstellt – inklusive Schrift, Berglandschaft und Drucktextur. Es ist keine historische Tourismuswerbung.",
-      "takeaway": "Generative KI kann auch gut lesbare Schrift und überzeugende Werbung erzeugen. Ein professioneller Look ist kein Herkunftsnachweis.",
-      "source": "/sources.html#ki-beispiele",
-      "credit": "KI-Bild · integrierter Bildgenerator · 30.10.2026 · fiktives Reiseplakat",
-      "license": "Quiz-Eigeninhalt; siehe content/provenance.json"
-    },
-    {
-      "id": "q04", "type": "text", "title": "Ein paar Zeilen Ruhe.",
-      "text": "Ueber allen Gipfeln\nIst Ruh’,\nIn allen Wipfeln\nSpürest du\nKaum einen Hauch;\nDie Vögelein schweigen im Walde.\nWarte nur, balde\nRuhest du auch.",
+      "id": "media-01",
+      "type": "photo",
+      "title": "Zürich von oben",
+      "asset": "assets/round-01.jpg",
       "answer": "human",
-      "explanation": "Das Gedicht «Ein gleiches» stammt von Johann Wolfgang von Goethe, entstand 1780 und ist hier nach der Ausgabe von 1827 wiedergegeben. Die historische Veröffentlichung belegt seine Herkunft.",
-      "takeaway": "Eine datierte Originalquelle ist stärker als eine Stilvermutung. KI könnte heute ähnliche Verse oder sogar dasselbe Gedicht ausgeben.",
-      "source": "https://de.wikisource.org/wiki/Ein_Gleiches",
-      "credit": "Johann Wolfgang von Goethe · Ein gleiches · 1827 · Zeilenumbrüche übernommen",
-      "license": "Gemeinfreier Originaltext"
+      "explanation": "Echt aufgenommen.",
+      "takeaway": "Was hat euch überzeugt – und was hat euch getäuscht?",
+      "source": "https://unsplash.com/photos/6p-I-X-sPUY",
+      "credit": "Henrique Ferreira / Unsplash",
+      "license": "Unsplash License"
     },
     {
-      "id": "q05", "type": "photo", "title": "Würdest du hier baden gehen?",
-      "asset": "assets/lake.png", "answer": "ai",
-      "explanation": "Berge, Bootshaus und See wurden für dieses Quiz vollständig mit einem Bildgenerator erzeugt. Das Bild wirkt wie ein Ferienfoto, dokumentiert aber keine Aufnahme eines bestimmten Ortes.",
-      "takeaway": "Auch wenn keine auffälligen Fehler zu sehen sind, kann ein Bild generiert sein. Suche die ursprüngliche Quelle und unabhängige Aufnahmen.",
-      "source": "/sources.html#ki-beispiele",
-      "credit": "KI-Bild · integrierter Bildgenerator · 30.10.2026 · erfundene Alpenlandschaft",
-      "license": "Quiz-Eigeninhalt; siehe content/provenance.json"
-    },
-    {
-      "id": "q06", "type": "text", "title": "Der Anfang einer Geschichte.",
-      "text": "In den alten Zeiten, wo das Wünschen noch geholfen hat, lebte ein König, dessen Töchter waren alle schön, aber die jüngste war so schön, daß die Sonne selber, die doch so vieles gesehen hat, sich verwunderte so oft sie ihr ins Gesicht schien.",
-      "answer": "human",
-      "explanation": "Das ist der Beginn von «Der Froschkönig oder der eiserne Heinrich» aus den Kinder- und Hausmärchen der Brüder Grimm, Ausgabe 1857. Die alte Schreibweise ist aus der Quelle übernommen.",
-      "takeaway": "Alte oder ungewöhnliche Sprache ist kein sicherer KI-Test. Entscheidend ist hier die nachprüfbare historische Quelle.",
-      "source": "https://de.wikisource.org/wiki/Der_Froschk%C3%B6nig_oder_der_eiserne_Heinrich_(1857)",
-      "credit": "Jacob und Wilhelm Grimm · Kinder- und Hausmärchen · 1857 · erster Absatz",
-      "license": "Gemeinfreier Originaltext"
-    },
-    {
-      "id": "q07", "type": "poster", "title": "Ein Klassiker – oder eine Kopie?",
-      "asset": "assets/travel.jpg", "answer": "human",
-      "explanation": "Das Zermatt-Plakat gestaltete Emil Cardinaux 1908. Die Vorlage ist eine Lithografie; gezeigt wird ein Scan aus der Plakatsammlung der Schule für Gestaltung Basel. Die ungewöhnlichen Farben stammen von einem Menschen.",
-      "takeaway": "Stilisierte oder unrealistische Bilder sind nicht automatisch KI-generiert. Kunst und Werbung spielen schon lange mit der Wirklichkeit.",
-      "source": "https://commons.wikimedia.org/wiki/File:CH-000957-X-3396_Cardinaux.jpg",
-      "credit": "Emil Cardinaux · Zermatt · 1908 · Scan: Plakatsammlung SfG Basel · verkleinerte Vorschau",
-      "license": "Public Domain Mark 1.0 · https://creativecommons.org/publicdomain/mark/1.0/"
-    },
-    {
-      "id": "q08", "type": "text", "title": "Wissen in drei Sätzen.",
-      "text": "Wolken bestehen aus winzigen Wassertröpfchen oder Eiskristallen. Sie entstehen, wenn feuchte Luft abkühlt und Wasserdampf kondensiert. Obwohl die einzelnen Tröpfchen sehr klein sind, können sie zusammen grosse Mengen Wasser enthalten.",
+      "id": "media-02",
+      "type": "photo",
+      "title": "Porträt im Park",
+      "asset": "assets/round-02.jpg",
       "answer": "ai",
-      "explanation": "Diese kurze Erklärung wurde für das Quiz von einem Sprachmodell formuliert. Ihr Kern ist sachlich richtig. «Mit KI erzeugt» bedeutet also nicht automatisch «inhaltlich falsch».",
-      "takeaway": "Trenne zwei Fragen: Wer oder was hat den Inhalt erzeugt? Und stimmt die Aussage? Für beides brauchst du passende Belege.",
-      "source": "/sources.html#ki-beispiele",
-      "credit": "KI-Text · eigens für dieses Quiz erstellt · sachlich zutreffendes Beispiel",
-      "license": "Quiz-Eigeninhalt; siehe content/provenance.json"
+      "explanation": "Mit KI erzeugt.",
+      "takeaway": "Was hat euch überzeugt – und was hat euch getäuscht?",
+      "source": "https://gemini.google.com/",
+      "credit": "Gemini / vom Projektinhaber bereitgestellt",
+      "license": "Projekteigenes KI-Beispiel"
+    },
+    {
+      "id": "media-03",
+      "type": "photo",
+      "title": "Ein freundliches Lächeln",
+      "asset": "assets/round-03.jpg",
+      "answer": "human",
+      "explanation": "Echt aufgenommen.",
+      "takeaway": "Was hat euch überzeugt – und was hat euch getäuscht?",
+      "source": "https://unsplash.com/photos/IF9TK5Uy-KI",
+      "credit": "Jake Nackos / Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "media-04",
+      "type": "video",
+      "title": "Die Getränkedose",
+      "asset": "assets/round-04.mp4",
+      "answer": "ai",
+      "explanation": "Mit KI erzeugt.",
+      "takeaway": "Was hat euch überzeugt – und was hat euch getäuscht?",
+      "source": "https://gemini.google.com/",
+      "credit": "Google-KI-Video / vom Projektinhaber bereitgestellt",
+      "license": "Projekteigenes KI-Beispiel"
+    },
+    {
+      "id": "media-05",
+      "type": "photo",
+      "title": "Ein Schnappschuss im Café",
+      "asset": "assets/round-05.jpg",
+      "answer": "ai",
+      "explanation": "Mit KI erzeugt.",
+      "takeaway": "Was hat euch überzeugt – und was hat euch getäuscht?",
+      "source": "https://chatgpt.com/",
+      "credit": "ChatGPT / vom Projektinhaber bereitgestellt",
+      "license": "Projekteigenes KI-Beispiel"
+    },
+    {
+      "id": "media-06",
+      "type": "video",
+      "title": "Die Katze unterwegs",
+      "asset": "assets/round-06.mp4",
+      "answer": "human",
+      "explanation": "Echt aufgenommen.",
+      "takeaway": "Was hat euch überzeugt – und was hat euch getäuscht?",
+      "source": "https://www.pexels.com/video/a-cat-walking-outdoors-8953455/",
+      "credit": "Jill Burrow / Pexels",
+      "license": "Pexels License"
+    },
+    {
+      "id": "media-07",
+      "type": "photo",
+      "title": "Musik für unterwegs",
+      "asset": "assets/round-07.jpg",
+      "answer": "human",
+      "explanation": "Echt aufgenommen.",
+      "takeaway": "Was hat euch überzeugt – und was hat euch getäuscht?",
+      "source": "https://unsplash.com/photos/LxBMsvUPAgo",
+      "credit": "Imtiyaz Ali / Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "id": "media-08",
+      "type": "photo",
+      "title": "Im Aquarium",
+      "asset": "assets/round-08.jpg",
+      "answer": "ai",
+      "explanation": "Mit KI erzeugt.",
+      "takeaway": "Was hat euch überzeugt – und was hat euch getäuscht?",
+      "source": "https://gemini.google.com/",
+      "credit": "Gemini / vom Projektinhaber bereitgestellt",
+      "license": "Projekteigenes KI-Beispiel"
+    },
+    {
+      "id": "media-09",
+      "type": "video",
+      "title": "Besuch bei den Tieren",
+      "asset": "assets/round-09.mp4",
+      "answer": "ai",
+      "explanation": "Mit KI erzeugt.",
+      "takeaway": "Was hat euch überzeugt – und was hat euch getäuscht?",
+      "source": "https://gemini.google.com/",
+      "credit": "Google-KI-Video / vom Projektinhaber bereitgestellt",
+      "license": "Projekteigenes KI-Beispiel"
+    },
+    {
+      "id": "media-10",
+      "type": "video",
+      "title": "Wellen von oben",
+      "asset": "assets/round-10.mp4",
+      "answer": "human",
+      "explanation": "Echt aufgenommen.",
+      "takeaway": "Was hat euch überzeugt – und was hat euch getäuscht?",
+      "source": "https://www.pexels.com/video/drone-shot-of-waves-in-the-sea-12657904/",
+      "credit": "Edward Ng / Pexels - edwardng.raw",
+      "license": "Pexels License"
     }
   ]
 }

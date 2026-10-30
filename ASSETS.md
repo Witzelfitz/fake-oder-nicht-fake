@@ -1,3 +1,24 @@
+# Aktive Medien im Zehn-Minuten-Quiz
+
+Sechs Bilder und vier stumme Clips, je fünf echte und fünf KI-Beispiele. Die Lizenz- und Herkunftsangaben sind von den Spielrunden getrennt. Originaldateinamen, Änderungen und Prüfsummen: [content/provenance.json](content/provenance.json).
+
+| Datei | Herkunft | Nutzungsangabe / Original |
+| --- | --- | --- |
+| `assets/round-01.jpg` | Henrique Ferreira / Unsplash | [Unsplash License](https://unsplash.com/photos/6p-I-X-sPUY) |
+| `assets/round-02.jpg` | Gemini / vom Projektinhaber bereitgestellt | [Projekteigenes KI-Beispiel](https://gemini.google.com/) |
+| `assets/round-03.jpg` | Jake Nackos / Unsplash | [Unsplash License](https://unsplash.com/photos/IF9TK5Uy-KI) |
+| `assets/round-04.mp4` | Google-KI-Video / vom Projektinhaber bereitgestellt | [Projekteigenes KI-Beispiel](https://gemini.google.com/) |
+| `assets/round-05.jpg` | ChatGPT / vom Projektinhaber bereitgestellt | [Projekteigenes KI-Beispiel](https://chatgpt.com/) |
+| `assets/round-06.mp4` | Jill Burrow / Pexels | [Pexels License](https://www.pexels.com/video/a-cat-walking-outdoors-8953455/) |
+| `assets/round-07.jpg` | Imtiyaz Ali / Unsplash | [Unsplash License](https://unsplash.com/photos/LxBMsvUPAgo) |
+| `assets/round-08.jpg` | Gemini / vom Projektinhaber bereitgestellt | [Projekteigenes KI-Beispiel](https://gemini.google.com/) |
+| `assets/round-09.mp4` | Google-KI-Video / vom Projektinhaber bereitgestellt | [Projekteigenes KI-Beispiel](https://gemini.google.com/) |
+| `assets/round-10.mp4` | Edward Ng / Pexels - edwardng.raw | [Pexels License](https://www.pexels.com/video/drone-shot-of-waves-in-the-sea-12657904/) |
+
+Die KI-Dateien stammen aus den vom Projektinhaber ausdrücklich für dieses Quiz bereitgestellten Downloads. Es werden keine exklusiven Rechte behauptet. Fotos sind nur verkleinert; Videos sind auf höchstens acht Sekunden gekürzt, stumm und als H.264-MP4 gespeichert.
+
+## Frühere, im aktuellen Quiz nicht verwendete Inhalte
+
 # Bild- und Textnachweise
 
 Die MIT-Lizenz des Quellcodes ersetzt keine Medienlizenz.

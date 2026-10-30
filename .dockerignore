@@ -10,3 +10,8 @@ docs
 publications
 test
 .env.*
+public/learning-ui.js
+public/materials.html
+public/materials.js
+public/documents.css
+public/print.js

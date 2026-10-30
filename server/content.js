@@ -11,7 +11,7 @@ export function resolveAsset(asset, uploadRoot) {
   if (typeof asset !== 'string') throw new Error('Bild fehlt.');
   if (asset.startsWith('upload:')) {
     const name = asset.slice(7);
-    if (!uploadRoot || !/^[a-f0-9]{32}\.(png|jpg|webp)$/.test(name)) throw new Error('Ungültiger Bildverweis.');
+    if (!uploadRoot || !/^[a-f0-9]{32}\.(png|jpg|webp|mp4)$/.test(name)) throw new Error('Ungültiger Medienverweis.');
     return path.join(uploadRoot, name);
   }
   const absolute = path.resolve(contentRoot, asset);
@@ -20,7 +20,7 @@ export function resolveAsset(asset, uploadRoot) {
 }
 
 export function validateQuestion(q, uploadRoot) {
-  if (!['photo', 'text', 'poster'].includes(q.type)) throw new Error('Ungültiger Fragetyp.');
+  if (!['photo', 'video', 'text', 'poster'].includes(q.type)) throw new Error('Ungültiger Fragetyp.');
   if (q.schemaVersion === 3) validateCase(q);
   else if (!['ai', 'human'].includes(q.answer)) throw new Error('Bitte die richtige Herkunft auswählen.');
   const limits = { title: 160, explanation: 4000, takeaway: 1500, source: 1500, credit: 1000, license: 1000 };
@@ -29,6 +29,8 @@ export function validateQuestion(q, uploadRoot) {
   }
   if (q.type === 'text' && (typeof q.text !== 'string' || !q.text.trim() || q.text.length > 10000)) throw new Error('Text fehlt oder ist zu lang (max. 10’000 Zeichen).');
   if (q.type !== 'text' && !existsSync(resolveAsset(q.asset, uploadRoot))) throw new Error('Bitte ein vorhandenes Bild auswählen oder hochladen.');
+  if (q.type === 'video' && !q.asset.endsWith('.mp4')) throw new Error('Bitte ein MP4-Video auswählen.');
+  if (q.type !== 'video' && q.asset?.endsWith('.mp4')) throw new Error('Für Videos das Format Video auswählen.');
   let sourceValid = /^\/sources\.html#[a-z-]+$/.test(q.source);
   try { const url = new URL(q.source); sourceValid ||= url.protocol === 'https:' && !url.username && !url.password; } catch { /* local sources are allowed above */ }
   if (!sourceValid) throw new Error('Die Quelle muss ein HTTPS-Link sein.');
@@ -56,7 +58,8 @@ export function publicQuestion(q, roomId, index) {
   return {
     id: q.id, type: q.type, title: q.title,
     text: q.type === 'text' ? q.text : null,
-    image: q.type !== 'text' ? `/media/${roomId}/${index}` : null,
-    alt: q.type === 'poster' ? 'Werbeplakat für die Quizfrage' : 'Fotomotiv für die Quizfrage'
+    image: !['text', 'video'].includes(q.type) ? `/media/${roomId}/${index}` : null,
+    video: q.type === 'video' ? `/media/${roomId}/${index}` : null,
+    alt: q.type === 'video' ? 'Videoclip für die Quizfrage' : q.type === 'poster' ? 'Werbeplakat für die Quizfrage' : 'Fotomotiv für die Quizfrage'
   };
 }

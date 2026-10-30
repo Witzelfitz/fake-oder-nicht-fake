@@ -12,7 +12,7 @@ import { applyImport } from '../server/imports.js';
 
 const send = (s,event,payload) => new Promise((resolve,reject) => s.timeout(3000).emit(event,payload,(err,data) => err ? reject(err) : resolve(data)));
 async function setup(t, mode = 'learning-v1',setId='stand-6') {
-  const server = createQuizServer({ dbPath: ':memory:', hostKey: 'learning-test' });
+  const server = createQuizServer({ legacy: true, dbPath: ':memory:', hostKey: 'learning-test' });
   applyImport(server.db); await server.listen(0,'127.0.0.1');
   const base = `http://127.0.0.1:${server.http.address().port}`, sockets=[];
   t.after(async()=>{ for(const s of sockets)s.disconnect(); await server.close(); });
@@ -27,7 +27,7 @@ async function setup(t, mode = 'learning-v1',setId='stand-6') {
 }
 
 test('Netzwerkfehler verhindert weder Konfiguration noch Serverstart',async t=>{
-  const server=createQuizServer({dbPath:':memory:',networkReader:()=>{throw new Error('uv_interface_addresses');}});
+  const server=createQuizServer({ legacy: true,dbPath:':memory:',networkReader:()=>{throw new Error('uv_interface_addresses');}});
   await server.listen(0,'127.0.0.1'); t.after(()=>server.close());
   const response=await fetch(`http://127.0.0.1:${server.http.address().port}/api/config`);
   assert.equal(response.status,200); const config=await response.json(); assert.ok(config.suggestedUrls.length>=1);
@@ -88,7 +88,7 @@ test('P1: Ersturteil, Quellenphase und Zweiturteil sind getrennt; Reconnect erhÃ
 });
 test('P1: Serverneustart erhÃ¤lt Quellenphase, Antworten, Raumrevision und Command-Ergebnis',async t=>{
   const folder=mkdtempSync(path.join(tmpdir(),'blick-restart-')),dbPath=path.join(folder,'quiz.sqlite');let server,sockets=[];
-  async function start(){server=createQuizServer({dbPath,hostKey:'restart'});await server.listen(0,'127.0.0.1');return `http://127.0.0.1:${server.http.address().port}`;}
+  async function start(){server=createQuizServer({ legacy: true,dbPath,hostKey:'restart'});await server.listen(0,'127.0.0.1');return `http://127.0.0.1:${server.http.address().port}`;}
   async function connect(base){const s=io(base,{transports:['websocket'],reconnection:false});sockets.push(s);await once(s,'connect');return s;}
   t.after(async()=>{for(const s of sockets)s.disconnect();await server?.close();if(path.dirname(folder)===path.resolve(tmpdir())&&path.basename(folder).startsWith('blick-restart-'))rmSync(folder,{recursive:true,force:true});});
   let base=await start();applyImport(server.db);

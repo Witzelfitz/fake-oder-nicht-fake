@@ -1,83 +1,198 @@
 {
-  "createdAt": "2026-10-30",
-  "purpose": "Medienkompetenz-Quiz, Digimärt Alpnach, Stand 02",
-  "note": "Entstehungsprotokoll der Quiz-Erstellung, kein unabhängiger Echtheitsnachweis. Keine genaue Bildmodell-Version vom integrierten Tool ausgewiesen. Die Asset-Prüfsummen beziehen sich auf die tatsächlich ausgelieferten Dateien.",
-  "images": [
+  "version": 2,
+  "media": [
     {
-      "questionId": "q01",
-      "asset": "assets/mountain.jpg",
+      "asset": "assets/round-01.jpg",
+      "originalFilename": "henrique-ferreira-6p-I-X-sPUY-unsplash.jpg",
+      "source": "https://unsplash.com/photos/6p-I-X-sPUY",
+      "credit": "Henrique Ferreira / Unsplash",
+      "license": "Unsplash License",
       "origin": "human",
-      "creator": "Hannes Röst",
-      "source": "https://commons.wikimedia.org/wiki/File:Fronalpstock_big.jpg",
-      "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Fronalpstock_big.jpg/1280px-Fronalpstock_big.jpg",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "changes": "Verkleinerte Commons-Vorschau, keine weiteren Motivänderungen. Original ist ein digital zusammengesetztes Panorama aus zwölf Fotos.",
-      "sha256": "5aa4bb3f5c51bc2f13ad3e7bb7f951884f355d2edc3f647295fd538476512156"
+      "changes": "Auf Webgrösse verkleinert; kein Motiv generativ verändert.",
+      "sha256": "0422b3492185ab84f7c5fc1e938507ba4eeb088ffad6bd7e9ba1c181be43ed16",
+      "bytes": 429449
     },
     {
-      "questionId": "q03",
-      "asset": "assets/alpine-poster.png",
+      "asset": "assets/round-02.jpg",
+      "originalFilename": "Gemini_Generated_Image_ (1).png",
+      "source": "https://gemini.google.com/",
+      "credit": "Gemini / vom Projektinhaber bereitgestellt",
+      "license": "Projekteigenes KI-Beispiel",
       "origin": "ai",
-      "tool": "Integriertes image_gen-Tool in Codex (kein API-/CLI-Fallback)",
-      "prompt": "Use case: ads-marketing. Asset type: complete travel advertising poster for an educational AI-or-human quiz, portrait 2:3. Create a beautiful plausible Swiss travel poster inspired by early 20th century graphic travel advertising, an angular ochre alpine mountain rising above a deep teal lake, forest in the foreground, warm cream paper, flat lithographic colour fields with fine subtle print texture. Strong editorial typography. Include exactly this large heading at top: \"ALPENLUFT\". Include exactly this smaller subheading at bottom: \"Zeit für einen Perspektivenwechsel.\" No other text, no real company logos, no watermark, no frame or surrounding room. Full bleed poster artwork. Make the lettering accurate and the visual professionally convincing; no deliberate AI errors. This is an explicitly generated example for an educational media provenance quiz.",
-      "changes": "Originalausgabe unverändert ins Repository kopiert.",
-      "license": "Für dieses Projekt erzeugter KI-Inhalt; siehe ASSETS.md",
-      "sha256": "582577729ec9946c7a9d36806e1969b6a6d5ec16ac2af8177f5e1b99f458b793"
+      "changes": "Auf Webgrösse verkleinert; kein Motiv generativ verändert.",
+      "sha256": "b529f2a7a2236755920264beabf3b881230cd9c1c8ffe53c9c6424f096e09b33",
+      "bytes": 141186
     },
     {
-      "questionId": "q05",
-      "asset": "assets/lake.png",
-      "origin": "ai",
-      "tool": "Integriertes image_gen-Tool in Codex (kein API-/CLI-Fallback)",
-      "prompt": "Use case: photorealistic-natural. Asset type: educational media-literacy quiz photo. Create one highly convincing natural landscape photograph of an unnamed Swiss alpine lake, green grassy foreground, steep craggy mountains beyond, a tiny wooden boathouse at the shoreline and a few ordinary clouds. Midday soft sunlight, restrained colours, realistic water reflections, documentary tourist camera photograph, landscape 3:2 aspect ratio. No people, no text, no watermark, no graphic borders. This is an explicitly AI-created example for students to guess the provenance; make it plausible rather than surreal.",
-      "changes": "Originalausgabe unverändert ins Repository kopiert.",
-      "license": "Für dieses Projekt erzeugter KI-Inhalt; siehe ASSETS.md",
-      "sha256": "491310e04ea7050704a69f340dd705c4602510e4648f879d00bedc70eceb92fa"
-    },
-    {
-      "questionId": "q07",
-      "asset": "assets/travel.jpg",
+      "asset": "assets/round-03.jpg",
+      "originalFilename": "jake-nackos-IF9TK5Uy-KI-unsplash.jpg",
+      "source": "https://unsplash.com/photos/IF9TK5Uy-KI",
+      "credit": "Jake Nackos / Unsplash",
+      "license": "Unsplash License",
       "origin": "human",
-      "creator": "Emil Cardinaux, 1908; Scan: Plakatsammlung Schule für Gestaltung Basel",
-      "source": "https://commons.wikimedia.org/wiki/File:CH-000957-X-3396_Cardinaux.jpg",
-      "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/CH-000957-X-3396_Cardinaux.jpg/960px-CH-000957-X-3396_Cardinaux.jpg",
-      "license": "Public Domain Mark 1.0",
-      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
-      "changes": "Verkleinerte Commons-Vorschau, keine weiteren Motivänderungen.",
-      "sha256": "448096d946fffdad428976299160f8e40f6cc809fe07075865256087f178c5c0"
+      "changes": "Auf Webgrösse verkleinert; kein Motiv generativ verändert.",
+      "sha256": "07f17465108f12fb801147fbb37366da813d5c5edcbc7eb6ec13d3ce6e1d4626",
+      "bytes": 116187
+    },
+    {
+      "asset": "assets/round-04.mp4",
+      "originalFilename": "product-360.mp4",
+      "source": "https://gemini.google.com/",
+      "credit": "Google-KI-Video / vom Projektinhaber bereitgestellt",
+      "license": "Projekteigenes KI-Beispiel",
+      "origin": "ai",
+      "changes": "Stummer Ausschnitt von maximal acht Sekunden, H.264, unveränderte Bildfolge.",
+      "sha256": "7a1dc2a4c453bb1ec9f609043aee835a63be3a31be4ce59a00f1cbd373cf4195",
+      "bytes": 363501
+    },
+    {
+      "asset": "assets/round-05.jpg",
+      "originalFilename": "ChatGPT Image 23. Apr. 2026, 10_17_54.png",
+      "source": "https://chatgpt.com/",
+      "credit": "ChatGPT / vom Projektinhaber bereitgestellt",
+      "license": "Projekteigenes KI-Beispiel",
+      "origin": "ai",
+      "changes": "Auf Webgrösse verkleinert; kein Motiv generativ verändert.",
+      "sha256": "0e9b1997ee6f5eb8170720022deb53ada4159d75bfdd61f5c65adc30bf7d0bc6",
+      "bytes": 348629
+    },
+    {
+      "asset": "assets/round-06.mp4",
+      "originalFilename": "8953455-uhd_1440_1920_30fps.mp4",
+      "source": "https://www.pexels.com/video/a-cat-walking-outdoors-8953455/",
+      "credit": "Jill Burrow / Pexels",
+      "license": "Pexels License",
+      "origin": "human",
+      "changes": "Stummer Ausschnitt von maximal acht Sekunden, H.264, unveränderte Bildfolge.",
+      "sha256": "9068690dcc2795094472859cc7989c92e6f3ae7ebb00923b449be246eba4763f",
+      "bytes": 1332888
+    },
+    {
+      "asset": "assets/round-07.jpg",
+      "originalFilename": "imtiyaz-ali-LxBMsvUPAgo-unsplash.jpg",
+      "source": "https://unsplash.com/photos/LxBMsvUPAgo",
+      "credit": "Imtiyaz Ali / Unsplash",
+      "license": "Unsplash License",
+      "origin": "human",
+      "changes": "Auf Webgrösse verkleinert; kein Motiv generativ verändert.",
+      "sha256": "489d59caff25ba056a1b6d4575e0b281e7200cebc41fa6312b71f474f4347f98",
+      "bytes": 162971
+    },
+    {
+      "asset": "assets/round-08.jpg",
+      "originalFilename": "Gemini_Generated_Image_ (2).png",
+      "source": "https://gemini.google.com/",
+      "credit": "Gemini / vom Projektinhaber bereitgestellt",
+      "license": "Projekteigenes KI-Beispiel",
+      "origin": "ai",
+      "changes": "Auf Webgrösse verkleinert; kein Motiv generativ verändert.",
+      "sha256": "260a13e94f188bad7821564f1505930984d6e73bb1c36c2f3af88a4a6901f333",
+      "bytes": 229776
+    },
+    {
+      "asset": "assets/round-09.mp4",
+      "originalFilename": "fa_e_b_b_a_a_a_cc_a_mp_.mp4",
+      "source": "https://gemini.google.com/",
+      "credit": "Google-KI-Video / vom Projektinhaber bereitgestellt",
+      "license": "Projekteigenes KI-Beispiel",
+      "origin": "ai",
+      "changes": "Stummer Ausschnitt von maximal acht Sekunden, H.264, unveränderte Bildfolge.",
+      "sha256": "1ad211a5968b59425da93f0787a70f91b8bb858ace734f71ed9e5445cf2b84f3",
+      "bytes": 689476
+    },
+    {
+      "asset": "assets/round-10.mp4",
+      "originalFilename": "12657904-uhd_3840_2160_30fps.mp4",
+      "source": "https://www.pexels.com/video/drone-shot-of-waves-in-the-sea-12657904/",
+      "credit": "Edward Ng / Pexels - edwardng.raw",
+      "license": "Pexels License",
+      "origin": "human",
+      "changes": "Stummer Ausschnitt von maximal acht Sekunden, H.264, unveränderte Bildfolge.",
+      "sha256": "b8b768f9158b050d52a31e1aebf7c72a45825f7dba35680df9af4631e71c5b59",
+      "bytes": 1208296
     }
   ],
-  "texts": [
-    {
-      "questionId": "q02",
-      "origin": "ai",
-      "tool": "Codex-Sprachmodell",
-      "writingBrief": "Verfasse für das Quiz eine kurze, natürlich klingende Einladung zu einer fiktiven Ideenwerkstatt auf einem Dorfplatz. Keine realen Veranstalter oder belegten Termine behaupten.",
-      "note": "Dieser Auftrag dokumentiert die in dieser Sitzung ausgeführte Textgestaltung; kein separater externer API-Aufruf."
-    },
-    {
-      "questionId": "q04",
-      "origin": "human",
-      "creator": "Johann Wolfgang von Goethe",
-      "source": "https://de.wikisource.org/wiki/Ein_Gleiches",
-      "license": "Gemeinfreier Originaltext",
-      "changes": "Historische Schreibweise übernommen, Zeilenumbrüche für die Quizanzeige."
-    },
-    {
-      "questionId": "q06",
-      "origin": "human",
-      "creator": "Jacob und Wilhelm Grimm",
-      "source": "https://de.wikisource.org/wiki/Der_Froschk%C3%B6nig_oder_der_eiserne_Heinrich_(1857)",
-      "license": "Gemeinfreier Originaltext",
-      "changes": "Erster Absatz in Originalschreibweise."
-    },
-    {
-      "questionId": "q08",
-      "origin": "ai",
-      "tool": "Codex-Sprachmodell",
-      "writingBrief": "Verfasse eine kurze sachlich zutreffende Erklärung zur Entstehung und Zusammensetzung von Wolken. Sie soll im Quiz zeigen, dass KI-generiert nicht automatisch falsch bedeutet.",
-      "note": "Dieser Auftrag dokumentiert die in dieser Sitzung ausgeführte Textgestaltung; kein separater externer API-Aufruf."
-    }
-  ]
+  "legacy": {
+    "createdAt": "2026-10-30",
+    "purpose": "Medienkompetenz-Quiz, Digimärt Alpnach, Stand 02",
+    "note": "Entstehungsprotokoll der Quiz-Erstellung, kein unabhängiger Echtheitsnachweis. Keine genaue Bildmodell-Version vom integrierten Tool ausgewiesen. Die Asset-Prüfsummen beziehen sich auf die tatsächlich ausgelieferten Dateien.",
+    "images": [
+      {
+        "questionId": "q01",
+        "asset": "assets/mountain.jpg",
+        "origin": "human",
+        "creator": "Hannes Röst",
+        "source": "https://commons.wikimedia.org/wiki/File:Fronalpstock_big.jpg",
+        "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Fronalpstock_big.jpg/1280px-Fronalpstock_big.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "changes": "Verkleinerte Commons-Vorschau, keine weiteren Motivänderungen. Original ist ein digital zusammengesetztes Panorama aus zwölf Fotos.",
+        "sha256": "5aa4bb3f5c51bc2f13ad3e7bb7f951884f355d2edc3f647295fd538476512156"
+      },
+      {
+        "questionId": "q03",
+        "asset": "assets/alpine-poster.png",
+        "origin": "ai",
+        "tool": "Integriertes image_gen-Tool in Codex (kein API-/CLI-Fallback)",
+        "prompt": "Use case: ads-marketing. Asset type: complete travel advertising poster for an educational AI-or-human quiz, portrait 2:3. Create a beautiful plausible Swiss travel poster inspired by early 20th century graphic travel advertising, an angular ochre alpine mountain rising above a deep teal lake, forest in the foreground, warm cream paper, flat lithographic colour fields with fine subtle print texture. Strong editorial typography. Include exactly this large heading at top: \"ALPENLUFT\". Include exactly this smaller subheading at bottom: \"Zeit für einen Perspektivenwechsel.\" No other text, no real company logos, no watermark, no frame or surrounding room. Full bleed poster artwork. Make the lettering accurate and the visual professionally convincing; no deliberate AI errors. This is an explicitly generated example for an educational media provenance quiz.",
+        "changes": "Originalausgabe unverändert ins Repository kopiert.",
+        "license": "Für dieses Projekt erzeugter KI-Inhalt; siehe ASSETS.md",
+        "sha256": "582577729ec9946c7a9d36806e1969b6a6d5ec16ac2af8177f5e1b99f458b793"
+      },
+      {
+        "questionId": "q05",
+        "asset": "assets/lake.png",
+        "origin": "ai",
+        "tool": "Integriertes image_gen-Tool in Codex (kein API-/CLI-Fallback)",
+        "prompt": "Use case: photorealistic-natural. Asset type: educational media-literacy quiz photo. Create one highly convincing natural landscape photograph of an unnamed Swiss alpine lake, green grassy foreground, steep craggy mountains beyond, a tiny wooden boathouse at the shoreline and a few ordinary clouds. Midday soft sunlight, restrained colours, realistic water reflections, documentary tourist camera photograph, landscape 3:2 aspect ratio. No people, no text, no watermark, no graphic borders. This is an explicitly AI-created example for students to guess the provenance; make it plausible rather than surreal.",
+        "changes": "Originalausgabe unverändert ins Repository kopiert.",
+        "license": "Für dieses Projekt erzeugter KI-Inhalt; siehe ASSETS.md",
+        "sha256": "491310e04ea7050704a69f340dd705c4602510e4648f879d00bedc70eceb92fa"
+      },
+      {
+        "questionId": "q07",
+        "asset": "assets/travel.jpg",
+        "origin": "human",
+        "creator": "Emil Cardinaux, 1908; Scan: Plakatsammlung Schule für Gestaltung Basel",
+        "source": "https://commons.wikimedia.org/wiki/File:CH-000957-X-3396_Cardinaux.jpg",
+        "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/CH-000957-X-3396_Cardinaux.jpg/960px-CH-000957-X-3396_Cardinaux.jpg",
+        "license": "Public Domain Mark 1.0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+        "changes": "Verkleinerte Commons-Vorschau, keine weiteren Motivänderungen.",
+        "sha256": "448096d946fffdad428976299160f8e40f6cc809fe07075865256087f178c5c0"
+      }
+    ],
+    "texts": [
+      {
+        "questionId": "q02",
+        "origin": "ai",
+        "tool": "Codex-Sprachmodell",
+        "writingBrief": "Verfasse für das Quiz eine kurze, natürlich klingende Einladung zu einer fiktiven Ideenwerkstatt auf einem Dorfplatz. Keine realen Veranstalter oder belegten Termine behaupten.",
+        "note": "Dieser Auftrag dokumentiert die in dieser Sitzung ausgeführte Textgestaltung; kein separater externer API-Aufruf."
+      },
+      {
+        "questionId": "q04",
+        "origin": "human",
+        "creator": "Johann Wolfgang von Goethe",
+        "source": "https://de.wikisource.org/wiki/Ein_Gleiches",
+        "license": "Gemeinfreier Originaltext",
+        "changes": "Historische Schreibweise übernommen, Zeilenumbrüche für die Quizanzeige."
+      },
+      {
+        "questionId": "q06",
+        "origin": "human",
+        "creator": "Jacob und Wilhelm Grimm",
+        "source": "https://de.wikisource.org/wiki/Der_Froschk%C3%B6nig_oder_der_eiserne_Heinrich_(1857)",
+        "license": "Gemeinfreier Originaltext",
+        "changes": "Erster Absatz in Originalschreibweise."
+      },
+      {
+        "questionId": "q08",
+        "origin": "ai",
+        "tool": "Codex-Sprachmodell",
+        "writingBrief": "Verfasse eine kurze sachlich zutreffende Erklärung zur Entstehung und Zusammensetzung von Wolken. Sie soll im Quiz zeigen, dass KI-generiert nicht automatisch falsch bedeutet.",
+        "note": "Dieser Auftrag dokumentiert die in dieser Sitzung ausgeführte Textgestaltung; kein separater externer API-Aufruf."
+      }
+    ]
+  }
 }

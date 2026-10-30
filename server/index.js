@@ -1,7 +1,10 @@
 import { createQuizServer } from './app.js';
 import { localAddresses } from './network.js';
+import { loadDeck } from './content.js';
+import { applyMediaPack } from './media-pack.js';
 
 const server = createQuizServer({ dbPath: process.env.DB_PATH, hostKey: process.env.HOST_KEY, publicUrl: process.env.PUBLIC_URL });
+applyMediaPack(server.db, loadDeck());
 const port = Number(process.env.PORT || 3000);
 await server.listen(port, process.env.HOST || '0.0.0.0');
 console.log(`\nFAKE ODER NICHT FAKE? · Digimärt Alpnach · Stand 02\n\nLokal: http://localhost:${port}\nModeration: http://localhost:${port}/host\nFragen verwalten: http://localhost:${port}/admin\nModerationsschlüssel: ${server.hostKey}\n`);
